@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useCart } from '../contexts/CartContext';
-import Cart from '../components/Cart'; // Assuming Cart component path is correct
+import { useAuth } from '../contexts/AuthContext';
+import Cart from '../components/Cart';
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -10,10 +11,14 @@ interface MainLayoutProps {
 const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(false);
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const { state: cartState } = useCart();
+  const { user, isAuthenticated, logout } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
   const aboutUsRef = useRef<HTMLDivElement>(null);
   const [aboutHighlight, setAboutHighlight] = useState(false);
+  const userMenuRef = useRef<HTMLDivElement>(null);
 
   // Toggle dark mode class on <html>
   useEffect(() => {
@@ -25,6 +30,20 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     }
   }, [darkMode]);
 
+  // Close user menu when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
+        setIsUserMenuOpen(false);
+      }
+    }
+    
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
   // Calculate total items for badge
   const totalItems = cartState.items.reduce((sum, item) => sum + item.quantity, 0);
 
@@ -35,6 +54,13 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
       setAboutHighlight(true);
       setTimeout(() => setAboutHighlight(false), 1000);
     }
+  };
+
+  // Handle logout
+  const handleLogout = () => {
+    logout();
+    setIsUserMenuOpen(false);
+    navigate('/');
   };
 
   return (
@@ -95,12 +121,88 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                   Products
                 </Link>
               </div>
+
+              {/* Authentication Links */}
+              {isAuthenticated ? (
+                <div className="relative" ref={userMenuRef}>
+                  <button
+                    onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
+                    className="flex items-center gap-2 py-1 px-3 rounded-full bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 transition-colors"
+                  >
+                    <span className="font-medium">{user?.first_name}</span>
+                    {/* User Icon */}
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </button>
+
+                  {/* User Menu Dropdown */}
+                  {isUserMenuOpen && (
+                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 z-10 dark:bg-gray-800 border dark:border-gray-700">
+                      <div className="px-4 py-2 border-b dark:border-gray-700">
+                        <p className="font-medium text-sm">{user?.first_name} {user?.last_name}</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{user?.email}</p>
+                      </div>
+                      <Link
+                        to="/profile"
+                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700"
+                        onClick={() => setIsUserMenuOpen(false)}
+                      >
+                        My Profile
+                      </Link>
+                      <Link
+                        to="/orders"
+                        className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700"
+                        onClick={() => setIsUserMenuOpen(false)}
+                      >
+                        My Orders
+                      </Link>
+                      {user?.is_admin && (
+                        <Link
+                          to="/admin"
+                          className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-200 dark:hover:bg-gray-700"
+                          onClick={() => setIsUserMenuOpen(false)}
+                        >
+                          Admin Dashboard
+                        </Link>
+                      )}
+                      <button
+                        onClick={handleLogout}
+                        className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-gray-100 dark:text-red-400 dark:hover:bg-gray-700"
+                      >
+                        Logout
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="flex gap-4">
+                  <Link
+                    to="/login"
+                    className={`hover:text-primary-600 transition-colors ${
+                      location.pathname === '/login' ? 'text-primary-600 font-semibold' : 'text-gray-600 dark:text-gray-300'
+                    }`}
+                  >
+                    Login
+                  </Link>
+                  <Link
+                    to="/register"
+                    className={`hover:text-primary-600 transition-colors ${
+                      location.pathname === '/register' ? 'text-primary-600 font-semibold' : 'text-gray-600 dark:text-gray-300'
+                    }`}
+                  >
+                    Register
+                  </Link>
+                </div>
+              )}
+
+              {/* Cart button */}
               <button
                 onClick={() => setIsCartOpen(!isCartOpen)}
                 className="flex items-center gap-2 text-gray-600 hover:text-primary-600 transition-colors relative dark:text-gray-300 dark:hover:text-primary-400"
                 aria-label={isCartOpen ? 'Close Cart' : 'Open Cart'}
               >
-                {/* Simple Cart Icon (replace with actual SVG if desired) */}
+                {/* Cart Icon */}
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
                 </svg>
