@@ -11,7 +11,10 @@ import { useProducts } from './hooks/useProducts';
 import { CartProvider } from './contexts/CartContext';
 import { AuthProvider } from './contexts/AuthContext';
 import { PersonalizationProvider } from './contexts/PersonalizationContext';
+import { StripeProvider } from './contexts/StripeContext';
 import PersonalizationFlow from './components/personalization/PersonalizationFlow';
+import Checkout from './components/checkout/Checkout';
+import OrderConfirmation from './components/checkout/OrderConfirmation';
 
 // Component to display all products on the /products page
 const AllProductsSection: React.FC = () => {
@@ -42,31 +45,37 @@ const App: React.FC = () => {
     <BrowserRouter>
       <AuthProvider>
         <CartProvider>
-          <PersonalizationProvider>
-            <MainLayout>
-              <Routes>
-                <Route path="/" element={<Home />} />
-                <Route path="/products" element={
-                  <div className="space-y-8">
-                    <h2 className="text-3xl font-bold text-gray-900 mb-6">
-                      Our Products
-                    </h2>
-                    <AllProductsSection />
-                  </div>
-                } />
-                <Route path="/login" element={<Login />} />
-                <Route path="/register" element={<Register />} />
-                <Route path="/profile" element={
-                  <ProtectedRoute>
-                    <Profile />
-                  </ProtectedRoute>
-                } />
-                {/* New route for personalization flow */}
-                <Route path="/personalize" element={<PersonalizationFlow />} />
-                <Route path="/personalize/:productId" element={<PersonalizationFlow />} />
-              </Routes>
-            </MainLayout>
-          </PersonalizationProvider>
+          <StripeProvider>
+            <PersonalizationProvider>
+              <MainLayout>
+                <Routes>
+                  <Route path="/" element={<Home />} />
+                  <Route path="/products" element={
+                    <div className="space-y-8">
+                      <h2 className="text-3xl font-bold text-gray-900 mb-6">
+                        Our Products
+                      </h2>
+                      <AllProductsSection />
+                    </div>
+                  } />
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/register" element={<Register />} />
+                  <Route path="/profile" element={
+                    <ProtectedRoute>
+                      <Profile />
+                    </ProtectedRoute>
+                  } />
+                  {/* New route for personalization flow */}
+                  <Route path="/personalize" element={<PersonalizationFlow />} />
+                  <Route path="/personalize/:productId" element={<PersonalizationFlow />} />
+                  
+                  {/* Checkout routes */}
+                  <Route path="/checkout" element={<Checkout />} />
+                  <Route path="/order-confirmation/:orderId" element={<OrderConfirmation />} />
+                </Routes>
+              </MainLayout>
+            </PersonalizationProvider>
+          </StripeProvider>
         </CartProvider>
       </AuthProvider>
     </BrowserRouter>

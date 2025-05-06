@@ -1,27 +1,33 @@
-import express from 'express';
-import cors from 'cors';
 import dotenv from 'dotenv';
+import path from 'path';
+import express from 'express';
+dotenv.config({ path: path.resolve(__dirname, '../.env') });
+
+import cors from 'cors';
 import { Pool } from 'pg';
 import productRoutes from './routes/productRoutes';
 import authRoutes from './routes/authRoutes';
 import designTemplateRoutes from './routes/designTemplateRoutes';
 import personalizationRoutes from './routes/personalizationRoutes';
-
-dotenv.config();
+import paymentRoutes from './routes/paymentRoutes';
 
 const app = express();
 const port = process.env.PORT || 5000;
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: process.env.CLIENT_URL || 'http://localhost:5173',
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  credentials: true,
+}));
 app.use(express.json());
 
 // Database configuration
 export const pool = new Pool({
-  user: process.env.DB_USER,
-  host: process.env.DB_HOST,
-  database: process.env.DB_NAME,
-  password: process.env.DB_PASSWORD,
+  user: process.env.DB_USER || 'postgres',
+  host: process.env.DB_HOST || 'localhost',
+  database: process.env.DB_NAME || 'delicado',
+  password: process.env.DB_PASSWORD || 'patrumai11',
   port: parseInt(process.env.DB_PORT || '5432'),
 });
 
@@ -60,6 +66,11 @@ app.get('/', (req, res) => {
         update: 'PUT /api/personalizations/:id',
         delete: 'DELETE /api/personalizations/:id'
       },
+      payments: {
+        createIntent: 'POST /api/payments/create-payment-intent',
+        webhook: 'POST /api/payments/webhook',
+        order: 'GET /api/payments/orders/:id'
+      },
       health: 'GET /api/health'
     }
   });
@@ -70,6 +81,7 @@ app.use('/api/products', productRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/design-templates', designTemplateRoutes);
 app.use('/api/personalizations', personalizationRoutes);
+app.use('/api/payments', paymentRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

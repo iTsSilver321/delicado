@@ -1,8 +1,10 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useCart } from '../contexts/CartContext';
 
 const Cart: React.FC = () => {
   const { state: cartState, removeItem, updateQuantity } = useCart();
+  const navigate = useNavigate();
 
   const total = cartState.items.reduce(
     (sum, item) => sum + item.price * item.quantity,
@@ -66,7 +68,10 @@ const Cart: React.FC = () => {
                 €{total.toFixed(2)}
               </span>
             </div>
-            <button className="w-full px-6 py-3 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors font-medium">
+            <button 
+              onClick={() => navigate('/checkout')}
+              className="w-full px-6 py-3 bg-primary-500 text-white rounded-lg hover:bg-primary-600 transition-colors font-medium"
+            >
               Checkout
             </button>
           </div>

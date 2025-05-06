@@ -21,25 +21,28 @@ export interface CartItem extends Product {
 export interface User {
   id: number;
   email: string;
-  firstName: string;
-  lastName: string;
-  address?: {
-    street: string;
-    city: string;
-    state: string;
-    zipCode: string;
-    country: string;
-  };
+  first_name: string;
+  last_name: string;
+  phone?: string;
+  shipping_addresses?: any;
+  is_admin: boolean;
 }
 
 export interface Order {
   id: number;
-  userId: number;
+  user_id: number;
   items: CartItem[];
   total: number;
   status: 'pending' | 'processing' | 'shipped' | 'delivered';
-  createdAt: string;
-  shippingAddress: User['address'];
+  created_at: string;
+  shipping_address: {
+    fullName: string;
+    street: string;
+    city: string;
+    state: string;
+    postalCode: string;
+    country: string;
+  };
 }
 
 // New interfaces for personalization

@@ -1,0 +1,364 @@
+import React, { useState, useEffect } from 'react';
+import { useStripe as useStripeJs, useElements, CardElement } from '@stripe/react-stripe-js';
+import { useCart } from '../../contexts/CartContext';
+import { useAuth } from '../../contexts/AuthContext';
+import { paymentService, ShippingAddress } from '../../services/paymentService';
+
+interface CheckoutFormProps {
+  onSuccess: (orderId: number) => void;
+  onCancel: () => void;
+}
+
+const CheckoutForm: React.FC<CheckoutFormProps> = ({ onSuccess, onCancel }) => {
+  const stripe = useStripeJs();
+  const elements = useElements();
+  const { state: cartState, clearCart } = useCart();
+  const { user } = useAuth();
+  
+  const [succeeded, setSucceeded] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [processing, setProcessing] = useState(false);
+  const [disabled, setDisabled] = useState(true);
+  const [clientSecret, setClientSecret] = useState('');
+  const [orderId, setOrderId] = useState<number | null>(null);
+  
+  // Shipping information state
+  const [shippingAddress, setShippingAddress] = useState<ShippingAddress>({
+    fullName: user ? `${user.first_name} ${user.last_name}` : '',
+    street: '',
+    city: '',
+    state: '',
+    postalCode: '',
+    country: ''
+  });
+  
+  // Update shipping address name when user changes
+  useEffect(() => {
+    if (user) {
+      setShippingAddress(prev => ({
+        ...prev,
+        fullName: `${user.first_name} ${user.last_name}`
+      }));
+    }
+  }, [user]);
+  
+  useEffect(() => {
+    // Create PaymentIntent only if not already created
+    if (cartState.items.length > 0 && !clientSecret) {
+      createPaymentIntent();
+    }
+  }, [cartState.items]);
+  
+  const createPaymentIntent = async () => {
+    try {
+      setProcessing(true);
+      const response = await paymentService.createPaymentIntent(
+        cartState.items, 
+        user?.id,
+        shippingAddress
+      );
+      setClientSecret(response.clientSecret);
+      setOrderId(response.orderId);
+    } catch (err) {
+      console.error('Error creating payment intent:', err);
+      setError('Failed to initialize payment. Please try again.');
+    } finally {
+      setProcessing(false);
+    }
+  };
+  
+  const handleChange = (event: any) => {
+    // Listen for changes in the CardElement
+    // and display any errors as the customer types their card details
+    setDisabled(event.empty);
+    setError(event.error ? event.error.message : '');
+  };
+  
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    
+    if (!stripe || !elements) {
+      // Stripe.js hasn't loaded yet
+      return;
+    }
+    
+    // Validate shipping address
+    if (!validateShippingAddress()) {
+      setError('Please fill in all shipping information fields');
+      return;
+    }
+    
+    setProcessing(true);
+    
+    const cardElement = elements.getElement(CardElement);
+    
+    if (!cardElement) {
+      setError('Card element not found');
+      setProcessing(false);
+      return;
+    }
+    
+    try {
+      const { error, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
+        payment_method: {
+          card: cardElement,
+          billing_details: {
+            name: shippingAddress.fullName,
+            address: {
+              line1: shippingAddress.street,
+              city: shippingAddress.city,
+              state: shippingAddress.state,
+              postal_code: shippingAddress.postalCode,
+              country: shippingAddress.country
+            }
+          }
+        }
+      });
+      
+      if (error) {
+        setError(`Payment failed: ${error.message}`);
+      } else if (paymentIntent && paymentIntent.status === 'succeeded') {
+        setSucceeded(true);
+        setError(null);
+        // Finalize order: update status and inventory in backend
+        if (orderId) {
+          await paymentService.finalizeOrder(orderId);
+        }
+        clearCart();
+        onSuccess(orderId!);
+      }
+    } catch (err) {
+      console.error('Error confirming payment:', err);
+      setError('An unexpected error occurred. Please try again.');
+    } finally {
+      setProcessing(false);
+    }
+  };
+  
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setShippingAddress(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+  
+  const validateShippingAddress = () => {
+    return Object.values(shippingAddress).every(value => value.trim() !== '');
+  };
+  
+  const cardElementOptions = {
+    style: {
+      base: {
+        color: "#32325d",
+        fontFamily: 'Arial, sans-serif',
+        fontSmoothing: "antialiased",
+        fontSize: "16px",
+        "::placeholder": {
+          color: "#aab7c4"
+        }
+      },
+      invalid: {
+        color: "#fa755a",
+        iconColor: "#fa755a"
+      }
+    },
+  };
+  
+  return (
+    <div className="bg-white p-6 rounded-lg shadow-md">
+      <h2 className="text-2xl font-bold text-gray-800 mb-6">Checkout</h2>
+      
+      {error && (
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+          {error}
+        </div>
+      )}
+      
+      {succeeded ? (
+        <div className="text-center py-6">
+          <div className="text-green-600 mb-4">
+            <svg className="w-16 h-16 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+          </div>
+          <h3 className="text-xl font-bold mb-2">Payment Successful!</h3>
+          <p className="mb-4">Your order has been placed successfully.</p>
+          <button 
+            onClick={() => onSuccess(orderId!)}
+            className="bg-primary-500 text-white px-6 py-2 rounded hover:bg-primary-600 transition-colors"
+          >
+            View Your Order
+          </button>
+        </div>
+      ) : (
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div>
+            <h3 className="text-lg font-semibold mb-4">Shipping Information</h3>
+            <div className="grid grid-cols-1 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Full Name
+                </label>
+                <input
+                  type="text"
+                  name="fullName"
+                  value={shippingAddress.fullName}
+                  onChange={handleInputChange}
+                  className="w-full p-2 border border-gray-300 rounded"
+                  required
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Street Address
+                </label>
+                <input
+                  type="text"
+                  name="street"
+                  value={shippingAddress.street}
+                  onChange={handleInputChange}
+                  className="w-full p-2 border border-gray-300 rounded"
+                  required
+                />
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    City
+                  </label>
+                  <input
+                    type="text"
+                    name="city"
+                    value={shippingAddress.city}
+                    onChange={handleInputChange}
+                    className="w-full p-2 border border-gray-300 rounded"
+                    required
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    State/Province
+                  </label>
+                  <input
+                    type="text"
+                    name="state"
+                    value={shippingAddress.state}
+                    onChange={handleInputChange}
+                    className="w-full p-2 border border-gray-300 rounded"
+                    required
+                  />
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Postal Code
+                  </label>
+                  <input
+                    type="text"
+                    name="postalCode"
+                    value={shippingAddress.postalCode}
+                    onChange={handleInputChange}
+                    className="w-full p-2 border border-gray-300 rounded"
+                    required
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Country
+                  </label>
+                  <input
+                    type="text"
+                    name="country"
+                    value={shippingAddress.country}
+                    onChange={handleInputChange}
+                    className="w-full p-2 border border-gray-300 rounded"
+                    required
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div>
+            <h3 className="text-lg font-semibold mb-4">Payment Details</h3>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Card Information
+            </label>
+            <div className="border border-gray-300 p-3 rounded mb-4">
+              <CardElement options={cardElementOptions} onChange={handleChange} />
+            </div>
+            <div className="text-sm text-gray-500 mb-4">
+              Test card: 4242 4242 4242 4242 | Exp: Any future date | CVC: Any 3 digits
+            </div>
+          </div>
+          
+          <div className="pt-4 border-t border-gray-200">
+            <div className="flex justify-between items-center mb-4">
+              <span className="text-lg font-semibold">Total:</span>
+              <span className="text-2xl font-bold text-primary-600">
+                €{cartState.total.toFixed(2)}
+              </span>
+            </div>
+            
+            <div className="flex justify-between space-x-4">
+              <button
+                type="button"
+                onClick={onCancel}
+                className="px-6 py-3 bg-gray-200 hover:bg-gray-300 rounded-lg transition-colors font-medium"
+              >
+                Cancel
+              </button>
+              
+              <button
+                type="submit"
+                disabled={processing || disabled || !clientSecret || succeeded}
+                className={`w-2/3 px-6 py-3 rounded-lg font-medium ${
+                  processing || disabled || !clientSecret
+                    ? 'bg-gray-400 cursor-not-allowed'
+                    : 'bg-primary-500 hover:bg-primary-600 text-white'
+                } transition-colors`}
+              >
+                {processing ? (
+                  <span className="flex items-center justify-center">
+                    <svg
+                      className="animate-spin -ml-1 mr-2 h-5 w-5 text-white"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      ></circle>
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      ></path>
+                    </svg>
+                    Processing...
+                  </span>
+                ) : (
+                  'Pay Now'
+                )}
+              </button>
+            </div>
+          </div>
+        </form>
+      )}
+    </div>
+  );
+};
+
+export default CheckoutForm;
