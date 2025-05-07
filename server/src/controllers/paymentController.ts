@@ -37,12 +37,27 @@ export async function createPaymentIntent(req: Request, res: Response): Promise<
     const amount = Math.round(
       items.reduce((sum: number, i: any) => sum + i.price * i.quantity, 0) * 100
     );
+    // prepare JSON strings for idempotency
+    const itemsJson = JSON.stringify(items);
+    const shippingJson = JSON.stringify(shippingAddress);
+    const totalAmount = amount / 100;
+    // check for existing pending order with same details
+    const existing = await db.oneOrNone(
+      `SELECT id, payment_intent_id FROM orders WHERE status = 'pending' AND user_id = $1 AND items::text = $2 AND shipping_address::text = $3 AND total_amount = $4`,
+      [userId || null, itemsJson, shippingJson, totalAmount]
+    );
+    if (existing && existing.payment_intent_id) {
+      // reuse existing Stripe PaymentIntent
+      const pi = await stripe.paymentIntents.retrieve(existing.payment_intent_id);
+      res.json({ clientSecret: pi.client_secret, orderId: existing.id });
+      return;
+    }
     // create pending order in DB
     const order = await db.one(
       `INSERT INTO orders (user_id, status, total_amount, shipping_address, items, created_at, updated_at)
        VALUES ($1, 'pending', $2, $3, $4, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
        RETURNING id`,
-      [userId || null, amount / 100, shippingAddress, JSON.stringify(items)]
+      [userId || null, totalAmount, JSON.stringify(shippingAddress), itemsJson]
     );
     // create stripe payment intent
     const paymentIntent = await stripe.paymentIntents.create({
@@ -71,11 +86,28 @@ export async function createCashOrder(req: Request, res: Response): Promise<void
       res.status(400).json({ error: 'Invalid cart items' });
       return;
     }
+
+    // Prepare JSON strings for comparison
+    const shippingJson = JSON.stringify(shippingAddress);
+    const itemsJson = JSON.stringify(items);
+
+    // Check for existing pending order with same payload
+    const existing = await db.oneOrNone(
+      `SELECT id FROM orders WHERE status = 'pending' AND user_id = $1 AND shipping_address::text = $2 AND items::text = $3`,
+      [userId || null, shippingJson, itemsJson]
+    );
+    if (existing) {
+      // Return existing pending order
+      res.json({ orderId: existing.id });
+      return;
+    }
+
     // Calculate items total
     const itemsTotal = items.reduce((sum: number, i: any) => sum + i.price * i.quantity, 0);
     // Add shipping cost if present
     const shippingCost = shippingAddress?.shippingCost || 0;
     const totalAmount = itemsTotal + shippingCost;
+
     // Insert order into DB with status 'pending'
     const order = await db.one(
       `INSERT INTO orders (user_id, status, total_amount, shipping_address, items, created_at, updated_at)
@@ -88,6 +120,7 @@ export async function createCashOrder(req: Request, res: Response): Promise<void
         JSON.stringify(items)             // stringify for JSONB
       ]
     );
+
     // Send confirmation email if user exists
     if (userId) {
       try {

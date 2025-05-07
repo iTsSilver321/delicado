@@ -53,14 +53,7 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({ onSuccess, onCancel }) => {
     }
   }, [user]);
   
-  useEffect(() => {
-    // Regenerate PaymentIntent when cart items, shipping, or card payment selected
-    if (paymentMethod === 'card' && cartState.items.length > 0) {
-      createPaymentIntent();
-    }
-  }, [cartState.items, shippingMethod, shippingCost, paymentMethod]);
-  
-  const createPaymentIntent = async () => {
+  const createPaymentIntent = async (): Promise<{clientSecret: string; orderId: number;} | null> => {
     try {
       setProcessing(true);
       const response = await paymentService.createPaymentIntent(
@@ -70,9 +63,11 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({ onSuccess, onCancel }) => {
       );
       setClientSecret(response.clientSecret);
       setOrderId(response.orderId);
+      return { clientSecret: response.clientSecret, orderId: response.orderId };
     } catch (err) {
       console.error('Error creating payment intent:', err);
       setError('Failed to initialize payment. Please try again.');
+      return null;
     } finally {
       setProcessing(false);
     }
@@ -116,7 +111,20 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({ onSuccess, onCancel }) => {
       return;
     }
 
-    // Existing card payment logic
+    // Create PaymentIntent on submit if not already created and capture secret
+    let secret = clientSecret;
+    let oid = orderId;
+    if (!secret) {
+      const resp = await createPaymentIntent();
+      if (!resp) {
+        setProcessing(false);
+        return;
+      }
+      secret = resp.clientSecret;
+      oid = resp.orderId;
+    }
+
+    // Stripe.js hasn't loaded yet
     if (!stripe || !elements) {
       setProcessing(false);
       return;
@@ -131,7 +139,7 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({ onSuccess, onCancel }) => {
     }
     
     try {
-      const { error, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
+      const { error, paymentIntent } = await stripe.confirmCardPayment(secret!, {
         payment_method: {
           card: cardElement,
           billing_details: {
@@ -153,11 +161,11 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({ onSuccess, onCancel }) => {
         setSucceeded(true);
         setError(null);
         // Finalize order: update status and inventory in backend
-        if (orderId) {
-          await paymentService.finalizeOrder(orderId);
+        if (oid) {
+          await paymentService.finalizeOrder(oid);
         }
         clearCart();
-        onSuccess(orderId!);
+        onSuccess(oid!);
       }
     } catch (err: any) {
       console.error('Error confirming payment:', err.response || err);
@@ -390,9 +398,10 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({ onSuccess, onCancel }) => {
               
               <button
                 type="submit"
-                disabled={processing || succeeded || (paymentMethod === 'card' && (disabled || !clientSecret))}
+                // disable only if processing, already succeeded, or card input is empty
+                disabled={processing || succeeded || (paymentMethod === 'card' && disabled)}
                 className={`w-2/3 px-6 py-3 rounded-lg font-medium ${
-                  processing || (paymentMethod === 'card' ? (disabled || !clientSecret) : false)
+                  processing || (paymentMethod === 'card' && disabled)
                     ? 'bg-gray-400 cursor-not-allowed'
                     : 'bg-primary-500 hover:bg-primary-600 text-white'
                 } transition-colors`}>
