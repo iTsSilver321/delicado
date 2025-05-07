@@ -120,6 +120,14 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                 >
                   Products
                 </Link>
+                <Link
+                  to="/design-library"
+                  className={`hover:text-primary-600 transition-colors ${
+                    location.pathname.startsWith('/design-library') ? 'text-primary-600 font-semibold' : 'text-gray-600 dark:text-gray-300'
+                  }`}
+                >
+                  Design Library
+                </Link>
               </div>
 
               {/* Authentication Links */}

@@ -16,6 +16,7 @@ import { StripeProvider } from './contexts/StripeContext';
 import PersonalizationFlow from './components/personalization/PersonalizationFlow';
 import Checkout from './components/checkout/Checkout';
 import OrderConfirmation from './components/checkout/OrderConfirmation';
+import DesignLibrary from './components/DesignLibrary';
 
 // Component to display all products on the /products page
 const AllProductsSection: React.FC = () => {
@@ -119,6 +120,7 @@ const App: React.FC = () => {
                       <AllProductsSection />
                     </div>
                   } />
+                  <Route path="/design-library" element={<DesignLibrary />} />
                   <Route path="/login" element={<Login />} />
                   <Route path="/register" element={<Register />} />
                   <Route path="/profile" element={
