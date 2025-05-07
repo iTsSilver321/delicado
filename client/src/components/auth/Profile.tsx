@@ -1,10 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
-import { api } from '../../config/api';
 
 const Profile: React.FC = () => {
-  const { user, isLoading } = useAuth();
-  const { updateProfile } = useAuth();
+  const { user, isLoading, updateProfile } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
     first_name: '',
@@ -13,6 +11,22 @@ const Profile: React.FC = () => {
   });
   const [message, setMessage] = useState({ type: '', text: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const messageRef = useRef<HTMLDivElement>(null);
+
+  // Automatically clear success message after 3 seconds
+  useEffect(() => {
+    if (message.type === 'success') {
+      const timer = setTimeout(() => setMessage({ type: '', text: '' }), 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [message]);
+
+  // Scroll to the confirmation message when it appears
+  useEffect(() => {
+    if (message.text && messageRef.current) {
+      messageRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }, [message]);
 
   // Initialize form data with user data when it's available
   React.useEffect(() => {
@@ -37,8 +51,8 @@ const Profile: React.FC = () => {
     setIsSubmitting(true);
     setMessage({ type: '', text: '' });
     try {
-      await updateProfile(formData);
-      setMessage({ type: 'success', text: 'Profile updated successfully.' });
+      const confirmation = await updateProfile(formData);
+      setMessage({ type: 'success', text: confirmation });
       setIsEditing(false);
     } catch (error: any) {
       setMessage({ type: 'error', text: error.response?.data?.message || 'Failed to update profile.' });
@@ -68,7 +82,7 @@ const Profile: React.FC = () => {
       <h2 className="text-2xl font-semibold text-center text-gray-800 mb-6 dark:text-gray-100">My Profile</h2>
 
       {message.text && (
-        <div className={`mb-4 p-3 rounded ${
+        <div ref={messageRef} className={`mb-4 p-3 rounded ${
           message.type === 'success' ? 'bg-green-100 text-green-800 dark:bg-green-800/30 dark:text-green-400' : 
           'bg-red-100 text-red-800 dark:bg-red-800/30 dark:text-red-400'
         }`}>

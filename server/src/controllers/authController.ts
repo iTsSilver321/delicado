@@ -134,7 +134,10 @@ export const updateProfile = async (req: Request, res: Response) => {
     // Exclude password
     // @ts-ignore
     const { password, ...userWithoutPassword } = updated;
-    return res.status(200).json(userWithoutPassword);
+    return res.status(200).json({
+      message: 'Profile updated successfully.',
+      user: userWithoutPassword
+    });
   } catch (error) {
     console.error('Update profile error:', error);
     return res.status(500).json({ message: 'Server error during updating profile' });

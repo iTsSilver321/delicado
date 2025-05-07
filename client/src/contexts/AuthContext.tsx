@@ -19,7 +19,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<void>;
   register: (userData: RegisterData) => Promise<void>;
   logout: () => void;
-  updateProfile: (data: { first_name: string; last_name: string; phone?: string }) => Promise<void>;
+  updateProfile: (data: { first_name: string; last_name: string; phone?: string }) => Promise<string>;
   error: string | null;
 }
 
@@ -124,17 +124,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setUser(null);
   };
 
-  // Update profile function
+  // Update profile function (only updating user, keep global loading state intact)
   const updateProfile = async (data: { first_name: string; last_name: string; phone?: string }) => {
     try {
-      setIsLoading(true);
       const response = await api.put('/auth/profile', data);
-      setUser(response.data);
+      // Sync user with updated data
+      setUser(response.data.user);
+      // Return server confirmation message
+      return response.data.message as string;
     } catch (err: any) {
       console.error('Update profile error:', err);
       throw err;
-    } finally {
-      setIsLoading(false);
     }
   };
 
