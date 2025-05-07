@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import MainLayout from './layouts/MainLayout';
 import ProductGrid from './components/ProductGrid';
@@ -20,6 +20,34 @@ import OrderConfirmation from './components/checkout/OrderConfirmation';
 // Component to display all products on the /products page
 const AllProductsSection: React.FC = () => {
   const { products, loading, error } = useProducts();
+  // New states for search, category filter, and sort options
+  const [searchTerm, setSearchTerm] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('All');
+  const [sortOption, setSortOption] = useState('newest');
+
+  // Derive list of categories from products
+  const categories = useMemo(() => ['All', ...Array.from(new Set(products.map(p => p.category)))], [products]);
+
+  // Apply filters and sorting to products
+  const filteredProducts = useMemo(() => {
+    let result = products;
+    if (categoryFilter !== 'All') {
+      result = result.filter(p => p.category === categoryFilter);
+    }
+    if (searchTerm) {
+      const term = searchTerm.toLowerCase();
+      result = result.filter(p => p.name.toLowerCase().includes(term) || p.description.toLowerCase().includes(term));
+    }
+    if (sortOption === 'price-asc') {
+      result = [...result].sort((a, b) => a.price - b.price);
+    } else if (sortOption === 'price-desc') {
+      result = [...result].sort((a, b) => b.price - a.price);
+    } else {
+      // newest
+      result = [...result].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    }
+    return result;
+  }, [products, categoryFilter, searchTerm, sortOption]);
 
   if (loading) {
     return (
@@ -38,7 +66,39 @@ const AllProductsSection: React.FC = () => {
     );
   }
 
-  return <ProductGrid products={products} />;
+  return (
+    <div>
+      {/* Controls for search, category filter, and sorting */}
+      <div className="flex flex-col md:flex-row items-center justify-between mb-4 space-y-2 md:space-y-0">
+        <input
+          type="text"
+          value={searchTerm}
+          onChange={e => setSearchTerm(e.target.value)}
+          placeholder="Search products..."
+          className="border rounded-md px-3 py-2 w-full md:w-1/3"
+        />
+        <select
+          value={categoryFilter}
+          onChange={e => setCategoryFilter(e.target.value)}
+          className="border rounded-md px-3 py-2 w-full md:w-1/4"
+        >
+          {categories.map(cat => (
+            <option key={cat} value={cat}>{cat}</option>
+          ))}
+        </select>
+        <select
+          value={sortOption}
+          onChange={e => setSortOption(e.target.value)}
+          className="border rounded-md px-3 py-2 w-full md:w-1/4"
+        >
+          <option value="newest">Newest</option>
+          <option value="price-asc">Price: Low to High</option>
+          <option value="price-desc">Price: High to Low</option>
+        </select>
+      </div>
+      <ProductGrid products={filteredProducts} />
+    </div>
+  );
 };
 
 const App: React.FC = () => {
