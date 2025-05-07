@@ -143,3 +143,45 @@ export const updateProfile = async (req: Request, res: Response) => {
     return res.status(500).json({ message: 'Server error during updating profile' });
   }
 };
+
+// Change password (requires oldPassword and newPassword)
+export const changePassword = async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).user?.id;
+    const { oldPassword, newPassword } = req.body;
+    if (!userId) return res.status(401).json({ message: 'Unauthorized' });
+
+    // Fetch user
+    const user = await UserModel.findById(userId);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    // Verify old password
+    const valid = await UserModel.verifyPassword(oldPassword, user.password);
+    if (!valid) return res.status(400).json({ message: 'Old password is incorrect' });
+
+    // Update to new password
+    await UserModel.updatePassword(userId, newPassword);
+    return res.json({ message: 'Password updated successfully' });
+  } catch (error) {
+    console.error('Change password error:', error);
+    return res.status(500).json({ message: 'Server error during password change' });
+  }
+};
+
+// Manage saved addresses
+export const manageAddresses = async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).user?.id;
+    const { addresses } = req.body;
+    if (!userId) return res.status(401).json({ message: 'Unauthorized' });
+    if (!Array.isArray(addresses)) return res.status(400).json({ message: 'Invalid addresses format' });
+
+    // Update addresses
+    const updatedUser = await UserModel.updateAddresses(userId, addresses);
+    const { password, ...userWithoutPw } = updatedUser;
+    return res.json({ message: 'Addresses updated', user: userWithoutPw });
+  } catch (error) {
+    console.error('Manage addresses error:', error);
+    return res.status(500).json({ message: 'Server error during address update' });
+  }
+};

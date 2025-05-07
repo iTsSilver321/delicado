@@ -20,6 +20,8 @@ interface AuthContextType {
   register: (userData: RegisterData) => Promise<void>;
   logout: () => void;
   updateProfile: (data: { first_name: string; last_name: string; phone?: string }) => Promise<string>;
+  changePassword: (oldPassword: string, newPassword: string) => Promise<string>;
+  updateAddresses: (addresses: any[]) => Promise<{ message: string; user: User }>;
   error: string | null;
 }
 
@@ -138,6 +140,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  // Change password
+  const changePassword = async (oldPassword: string, newPassword: string) => {
+    const response = await api.post('/auth/change-password', { oldPassword, newPassword });
+    return response.data.message;
+  };
+
+  // Update saved addresses
+  const updateAddresses = async (addresses: any[]) => {
+    const response = await api.post('/auth/addresses', { addresses });
+    const { user: updatedUser, message } = response.data;
+    setUser(updatedUser);
+    return { message, user: updatedUser };
+  };
+
   const value = {
     user,
     token,
@@ -147,6 +163,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     register,
     logout,
     updateProfile,
+    changePassword,
+    updateAddresses,
     error
   };
 

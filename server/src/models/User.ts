@@ -74,4 +74,23 @@ export class UserModel {
     );
     return updatedUser;
   }
+
+  // Update user password
+  static async updatePassword(id: number, newPassword: string): Promise<void> {
+    const salt = await bcrypt.genSalt(10);
+    const hashed = await bcrypt.hash(newPassword, salt);
+    await db.none(
+      `UPDATE users SET password = $1, updated_at = now() WHERE id = $2`,
+      [hashed, id]
+    );
+  }
+
+  // Update user's saved shipping addresses
+  static async updateAddresses(id: number, addresses: any[]): Promise<User> {
+    const updated = await db.one(
+      `UPDATE users SET shipping_addresses = $1, updated_at = now() WHERE id = $2 RETURNING *`,
+      [JSON.stringify(addresses), id]
+    );
+    return updated;
+  }
 }

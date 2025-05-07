@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../../contexts/AuthContext';
 
 const Profile: React.FC = () => {
-  const { user, isLoading, updateProfile } = useAuth();
+  const { user, isLoading, updateProfile, changePassword, updateAddresses } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
     first_name: '',
@@ -12,6 +12,18 @@ const Profile: React.FC = () => {
   const [message, setMessage] = useState({ type: '', text: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const messageRef = useRef<HTMLDivElement>(null);
+
+  // Change password state
+  const [showChangePw, setShowChangePw] = useState(false);
+  const [pwData, setPwData] = useState({ oldPassword: '', newPassword: '', confirmPassword: '' });
+  const [pwMessage, setPwMessage] = useState({ type: '', text: '' });
+  const [pwSubmitting, setPwSubmitting] = useState(false);
+
+  // Addresses state
+  const [showAddresses, setShowAddresses] = useState(false);
+  const [addresses, setAddresses] = useState<any[]>(user?.shipping_addresses || []);
+  const [addrMessage, setAddrMessage] = useState({ type: '', text: '' });
+  const [addrSubmitting, setAddrSubmitting] = useState(false);
 
   // Automatically clear success message after 3 seconds
   useEffect(() => {
@@ -39,11 +51,62 @@ const Profile: React.FC = () => {
     }
   }, [user]);
 
+  // Initialize addresses when user loads
+  useEffect(() => {
+    setAddresses(user?.shipping_addresses || []);
+  }, [user]);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
     });
+  };
+
+  const handlePwChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setPwData({ ...pwData, [e.target.name]: e.target.value });
+  };
+
+  const handlePwSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setPwSubmitting(true);
+    setPwMessage({ type: '', text: '' });
+    if (pwData.newPassword !== pwData.confirmPassword) {
+      setPwMessage({ type: 'error', text: 'New passwords do not match' });
+      setPwSubmitting(false);
+      return;
+    }
+    try {
+      const msg = await changePassword(pwData.oldPassword, pwData.newPassword);
+      setPwMessage({ type: 'success', text: msg });
+      setPwData({ oldPassword: '', newPassword: '', confirmPassword: '' });
+    } catch (err: any) {
+      setPwMessage({ type: 'error', text: err.response?.data?.message || 'Failed to change password' });
+    } finally {
+      setPwSubmitting(false);
+    }
+  };
+
+  const handleAddrChange = (idx: number, e: React.ChangeEvent<HTMLInputElement>) => {
+    const copy = [...addresses];
+    copy[idx] = { ...copy[idx], [e.target.name]: e.target.value };
+    setAddresses(copy);
+  };
+
+  const addAddress = () => setAddresses([...addresses, { fullName: '', street: '', city: '', state: '', postalCode: '', country: '' }]);
+  const removeAddress = (idx: number) => setAddresses(addresses.filter((_, i) => i !== idx));
+
+  const handleAddrSubmit = async () => {
+    setAddrSubmitting(true);
+    setAddrMessage({ type: '', text: '' });
+    try {
+      const res = await updateAddresses(addresses);
+      setAddrMessage({ type: 'success', text: res.message });
+    } catch (err: any) {
+      setAddrMessage({ type: 'error', text: err.response?.data?.message || 'Failed to update addresses' });
+    } finally {
+      setAddrSubmitting(false);
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -209,6 +272,88 @@ const Profile: React.FC = () => {
           )}
         </div>
       </form>
+
+      {/* Change Password Section */}
+      <div className="mt-8">
+        <button onClick={() => setShowChangePw(!showChangePw)} className="text-blue-500 hover:underline mb-2">
+          {showChangePw ? 'Hide Change Password' : 'Change Password'}
+        </button>
+        {showChangePw && (
+          <form onSubmit={handlePwSubmit} className="space-y-4 p-4 bg-gray-50 rounded">
+            {pwMessage.text && <p className={pwMessage.type === 'success' ? 'text-green-600' : 'text-red-600'}>{pwMessage.text}</p>}
+            <input
+              name="oldPassword"
+              type="password"
+              placeholder="Old Password"
+              value={pwData.oldPassword}
+              onChange={handlePwChange}
+              className="w-full p-2 border rounded"
+              required
+            />
+            <input
+              name="newPassword"
+              type="password"
+              placeholder="New Password"
+              value={pwData.newPassword}
+              onChange={handlePwChange}
+              className="w-full p-2 border rounded"
+              required
+            />
+            <input
+              name="confirmPassword"
+              type="password"
+              placeholder="Confirm New Password"
+              value={pwData.confirmPassword}
+              onChange={handlePwChange}
+              className="w-full p-2 border rounded"
+              required
+            />
+            <button type="submit" disabled={pwSubmitting} className="px-4 py-2 bg-blue-500 text-white rounded">
+              {pwSubmitting ? 'Saving...' : 'Save Password'}
+            </button>
+          </form>
+        )}
+      </div>
+
+      {/* Manage Addresses Section */}
+      <div className="mt-8">
+        <button onClick={() => setShowAddresses(!showAddresses)} className="text-blue-500 hover:underline mb-2">
+          {showAddresses ? 'Hide Addresses' : 'Manage Saved Addresses'}
+        </button>
+        {showAddresses && (
+          <div className="space-y-4 p-4 bg-gray-50 rounded">
+            {addrMessage.text && <p className={addrMessage.type === 'success' ? 'text-green-600' : 'text-red-600'}>{addrMessage.text}</p>}
+            {addresses.map((addr, idx) => (
+              <div key={idx} className="border rounded p-2 space-y-2">
+                <div className="flex justify-between">
+                  <span className="font-medium">Address #{idx + 1}</span>
+                  <button type="button" onClick={() => removeAddress(idx)} className="text-red-500">
+                    Remove
+                  </button>
+                </div>
+                {['fullName', 'street', 'city', 'state', 'postalCode', 'country'].map((field) => (
+                  <input
+                    key={field}
+                    name={field}
+                    placeholder={field}
+                    value={addr[field] || ''}
+                    onChange={(e) => handleAddrChange(idx, e)}
+                    className="w-full p-1 border rounded"
+                  />
+                ))}
+              </div>
+            ))}
+            <button type="button" onClick={addAddress} className="px-4 py-2 bg-green-500 text-white rounded">
+              Add Address
+            </button>
+            <div className="mt-2">
+              <button onClick={handleAddrSubmit} disabled={addrSubmitting} className="px-4 py-2 bg-blue-500 text-white rounded">
+                {addrSubmitting ? 'Saving...' : 'Save Addresses'}
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 };

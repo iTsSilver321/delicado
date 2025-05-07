@@ -41,4 +41,14 @@ router.put('/profile', auth, (req, res, next) => {
   authController.updateProfile(req, res).catch(next);
 });
 
+// Change password endpoint
+router.post('/change-password', auth, (req, res, next) => {
+  authController.changePassword(req, res).catch(next);
+});
+
+// Manage saved addresses endpoint
+router.post('/addresses', auth, (req, res, next) => {
+  authController.manageAddresses(req, res).catch(next);
+});
+
 export default router;
