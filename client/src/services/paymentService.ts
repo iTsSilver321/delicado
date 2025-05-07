@@ -15,12 +15,18 @@ export interface ShippingAddress {
   country: string;
 }
 
+// Extended shipping info including method and cost
+export interface ShippingInfo extends ShippingAddress {
+  shippingMethod: string;
+  shippingCost: number;
+}
+
 export const paymentService = {
-  createPaymentIntent(items: CartItem[], userId?: number, shippingAddress?: ShippingAddress): Promise<CreatePaymentIntentResponse> {
+  createPaymentIntent(items: CartItem[], userId?: number, shippingInfo?: ShippingInfo): Promise<CreatePaymentIntentResponse> {
     return api.post('/payments/create-payment-intent', {
       items,
       userId,
-      shippingAddress
+      shippingAddress: shippingInfo
     }).then(response => response.data);
   },
   
@@ -41,6 +47,15 @@ export const paymentService = {
         shipping_address: o.shipping_address
       }))
     );
+  },
+
+  // Create cash-on-delivery order without Stripe
+  createCashOrder(items: CartItem[], userId?: number, shippingInfo?: ShippingInfo): Promise<{ orderId: number }> {
+    return api.post('/payments/cash-order', {
+      items,
+      userId,
+      shippingAddress: shippingInfo
+    }).then(response => response.data);
   },
 
   // Finalize order after client confirms payment

@@ -1,5 +1,6 @@
 import { Request, Response } from 'express';
 import Stripe from 'stripe';
+import nodemailer from 'nodemailer';
 import { db } from '../config/database';
 
 const stripeSecret = process.env.STRIPE_SECRET_KEY;
@@ -13,6 +14,17 @@ const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
 if (!webhookSecret) {
   console.warn("STRIPE_WEBHOOK_SECRET is not set. Webhook signature verification may fail if not using Stripe CLI forwarding.");
 }
+
+// Setup email transporter using env vars
+const transporter = nodemailer.createTransport({
+  host: process.env.SMTP_HOST,
+  port: Number(process.env.SMTP_PORT),
+  secure: process.env.SMTP_SECURE === 'true',
+  auth: {
+    user: process.env.SMTP_USER,
+    pass: process.env.SMTP_PASS
+  }
+});
 
 export async function createPaymentIntent(req: Request, res: Response): Promise<void> {
   try {
@@ -48,6 +60,56 @@ export async function createPaymentIntent(req: Request, res: Response): Promise<
   } catch (error) {
     console.error('Error creating payment intent:', error);
     res.status(500).json({ error: 'Failed to create payment intent' });
+  }
+}
+
+// Create cash-on-delivery order endpoint
+export async function createCashOrder(req: Request, res: Response): Promise<void> {
+  try {
+    const { items, userId, shippingAddress } = req.body;
+    if (!items || !Array.isArray(items) || items.length === 0) {
+      res.status(400).json({ error: 'Invalid cart items' });
+      return;
+    }
+    // Calculate items total
+    const itemsTotal = items.reduce((sum: number, i: any) => sum + i.price * i.quantity, 0);
+    // Add shipping cost if present
+    const shippingCost = shippingAddress?.shippingCost || 0;
+    const totalAmount = itemsTotal + shippingCost;
+    // Insert order into DB with status 'pending'
+    const order = await db.one(
+      `INSERT INTO orders (user_id, status, total_amount, shipping_address, items, created_at, updated_at)
+       VALUES ($1, 'pending', $2, $3, $4, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+       RETURNING id`,
+      [
+        userId || null,
+        totalAmount,
+        JSON.stringify(shippingAddress),  // stringify for JSONB
+        JSON.stringify(items)             // stringify for JSONB
+      ]
+    );
+    // Send confirmation email if user exists
+    if (userId) {
+      try {
+        const userRecord = await db.one('SELECT email, first_name FROM users WHERE id = $1', [userId]);
+        await transporter.sendMail({
+          from: process.env.EMAIL_FROM || 'no-reply@delicado.com',
+          to: userRecord.email,
+          subject: `Order Confirmation - #${order.id}`,
+          html: `<p>Hi ${userRecord.first_name},</p>
+                 <p>Your cash-on-delivery order <strong>#${order.id}</strong> has been received! We will contact you with delivery details.</p>
+                 <p>Order Total: €${totalAmount.toFixed(2)}</p>
+                 <p>Thank you for shopping with Delicado.</p>`
+        });
+      } catch (mailErr) {
+        console.error('Error sending cash order confirmation email:', mailErr);
+        // proceed without blocking order creation
+      }
+    }
+    res.json({ orderId: order.id });
+  } catch (error: any) {
+    console.error('Error creating cash order:', error);
+    res.status(500).json({ error: error.message || 'Failed to create cash order' });
   }
 }
 
@@ -122,6 +184,28 @@ export async function finalizeOrder(req: Request, res: Response): Promise<void> 
     );
     // reduce inventory
     await updateInventoryForOrder(orderId);
+
+    // Fetch order and user email for confirmation
+    const order = await db.one('SELECT user_id FROM orders WHERE id = $1', [orderId]);
+    if (order.user_id) {
+      try {
+        const userRecord = await db.one('SELECT email, first_name FROM users WHERE id = $1', [order.user_id]);
+        // Send confirmation email
+        await transporter.sendMail({
+          from: process.env.EMAIL_FROM || 'no-reply@delicado.com',
+          to: userRecord.email,
+          subject: `Order Confirmation - #${orderId}`,
+          html: `<p>Hi ${userRecord.first_name},</p>
+                 <p>Thank you for your order <strong>#${orderId}</strong>! We have received your payment and are now processing your purchase.</p>
+                 <p>You can view your order details <a href="${process.env.FRONTEND_URL}/order-confirmation/${orderId}">here</a>.</p>
+                 <p>Best regards,<br/>Delicado Team</p>`
+        });
+      } catch (mailErr) {
+        console.error('Error sending order confirmation email:', mailErr);
+        // continue without failing
+      }
+    }
+
     res.json({ success: true, orderId });
   } catch (error: any) {
     console.error('Error finalizing order:', error);

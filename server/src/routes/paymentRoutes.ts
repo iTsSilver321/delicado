@@ -4,7 +4,8 @@ import {
     handleWebhook, 
     getOrderById,
     getOrdersByUser,
-    finalizeOrder
+    finalizeOrder,
+    createCashOrder
 } from '../controllers/paymentController';
 import { auth } from '../middleware/auth';
 
@@ -51,6 +52,14 @@ const finalizeOrderHandler: RequestHandler = async (req, res, next) => {
   }
 };
 
+const createCashOrderHandler: RequestHandler = async (req, res, next) => {
+  try {
+    await createCashOrder(req, res);
+  } catch (err) {
+    next(err);
+  }
+};
+
 // Create payment intent
 router.post('/create-payment-intent', createPaymentIntentHandler);
 
@@ -65,7 +74,10 @@ router.get('/orders/:id', auth, getOrderByIdHandler);
 // Get current user's orders
 router.get('/user', auth, getOrdersByUserHandler);
 
-// Finalize order after client confirms payment
-router.post('/finalize-order', auth, finalizeOrderHandler);
+// Finalize order after client confirms payment (guest or logged-in)
+router.post('/finalize-order', finalizeOrderHandler);
+
+// Create cash order (guest or logged-in)
+router.post('/cash-order', createCashOrderHandler);
 
 export default router;

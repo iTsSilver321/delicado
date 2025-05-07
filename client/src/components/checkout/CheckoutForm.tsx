@@ -2,14 +2,21 @@ import React, { useState, useEffect } from 'react';
 import { useStripe as useStripeJs, useElements, CardElement } from '@stripe/react-stripe-js';
 import { useCart } from '../../contexts/CartContext';
 import { useAuth } from '../../contexts/AuthContext';
-import { paymentService, ShippingAddress } from '../../services/paymentService';
+import { paymentService, ShippingAddress, ShippingInfo } from '../../services/paymentService';
 
 interface CheckoutFormProps {
   onSuccess: (orderId: number) => void;
   onCancel: () => void;
 }
 
+const shippingOptions = [
+  { name: 'Standard', cost: 5 },
+  { name: 'Express', cost: 15 }
+];
+
 const CheckoutForm: React.FC<CheckoutFormProps> = ({ onSuccess, onCancel }) => {
+  // New payment method state
+  const [paymentMethod, setPaymentMethod] = useState<'card' | 'cash'>('card');
   const stripe = useStripeJs();
   const elements = useElements();
   const { state: cartState, clearCart } = useCart();
@@ -31,6 +38,10 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({ onSuccess, onCancel }) => {
     postalCode: '',
     country: ''
   });
+
+  // Shipping method state
+  const [shippingMethod, setShippingMethod] = useState(shippingOptions[0].name);
+  const [shippingCost, setShippingCost] = useState(shippingOptions[0].cost);
   
   // Update shipping address name when user changes
   useEffect(() => {
@@ -43,19 +54,19 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({ onSuccess, onCancel }) => {
   }, [user]);
   
   useEffect(() => {
-    // Create PaymentIntent only if not already created
-    if (cartState.items.length > 0 && !clientSecret) {
+    // Regenerate PaymentIntent when cart items, shipping, or card payment selected
+    if (paymentMethod === 'card' && cartState.items.length > 0) {
       createPaymentIntent();
     }
-  }, [cartState.items]);
+  }, [cartState.items, shippingMethod, shippingCost, paymentMethod]);
   
   const createPaymentIntent = async () => {
     try {
       setProcessing(true);
       const response = await paymentService.createPaymentIntent(
-        cartState.items, 
+        cartState.items,
         user?.id,
-        shippingAddress
+        { ...shippingAddress, shippingMethod, shippingCost } as ShippingInfo
       );
       setClientSecret(response.clientSecret);
       setOrderId(response.orderId);
@@ -77,11 +88,6 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({ onSuccess, onCancel }) => {
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     
-    if (!stripe || !elements) {
-      // Stripe.js hasn't loaded yet
-      return;
-    }
-    
     // Validate shipping address
     if (!validateShippingAddress()) {
       setError('Please fill in all shipping information fields');
@@ -89,6 +95,32 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({ onSuccess, onCancel }) => {
     }
     
     setProcessing(true);
+
+    if (paymentMethod === 'cash') {
+      try {
+        // Create cash order
+        const response = await paymentService.createCashOrder(
+          cartState.items,
+          user?.id,
+          { ...shippingAddress, shippingMethod, shippingCost } as ShippingInfo
+        );
+        clearCart();
+        onSuccess(response.orderId);
+      } catch (err: any) {
+        console.error('Error creating cash order:', err.response || err);
+        const msg = err.response?.data?.error || 'Failed to place cash order. Please try again.';
+        setError(msg);
+      } finally {
+        setProcessing(false);
+      }
+      return;
+    }
+
+    // Existing card payment logic
+    if (!stripe || !elements) {
+      setProcessing(false);
+      return;
+    }
     
     const cardElement = elements.getElement(CardElement);
     
@@ -127,9 +159,10 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({ onSuccess, onCancel }) => {
         clearCart();
         onSuccess(orderId!);
       }
-    } catch (err) {
-      console.error('Error confirming payment:', err);
-      setError('An unexpected error occurred. Please try again.');
+    } catch (err: any) {
+      console.error('Error confirming payment:', err.response || err);
+      const msg2 = err.response?.data?.error || 'An unexpected error occurred. Please try again.';
+      setError(msg2);
     } finally {
       setProcessing(false);
     }
@@ -168,14 +201,43 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({ onSuccess, onCancel }) => {
   return (
     <div className="bg-white p-6 rounded-lg shadow-md">
       <h2 className="text-2xl font-bold text-gray-800 mb-6">Checkout</h2>
-      
+
+      {/* Payment Method Selection */}
+      <div className="mb-6">
+        <h3 className="text-lg font-semibold mb-2">Payment Method</h3>
+        <div className="flex items-center space-x-4">
+          <label className="inline-flex items-center">
+            <input
+              type="radio"
+              name="paymentMethod"
+              value="card"
+              checked={paymentMethod === 'card'}
+              onChange={() => setPaymentMethod('card')}
+              className="form-radio"
+            />
+            <span className="ml-2">Credit/Debit Card</span>
+          </label>
+          <label className="inline-flex items-center">
+            <input
+              type="radio"
+              name="paymentMethod"
+              value="cash"
+              checked={paymentMethod === 'cash'}
+              onChange={() => setPaymentMethod('cash')}
+              className="form-radio"
+            />
+            <span className="ml-2">Cash on Delivery</span>
+          </label>
+        </div>
+      </div>
+
       {error && (
         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
           {error}
         </div>
       )}
       
-      {succeeded ? (
+      {paymentMethod === 'card' && succeeded ? (
         <div className="text-center py-6">
           <div className="text-green-600 mb-4">
             <svg className="w-16 h-16 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -286,24 +348,34 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({ onSuccess, onCancel }) => {
             </div>
           </div>
           
-          <div>
-            <h3 className="text-lg font-semibold mb-4">Payment Details</h3>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Card Information
-            </label>
-            <div className="border border-gray-300 p-3 rounded mb-4">
-              <CardElement options={cardElementOptions} onChange={handleChange} />
+          {paymentMethod === 'card' && (
+            <div>
+              <h3 className="text-lg font-semibold mb-4">Payment Details</h3>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Card Information
+              </label>
+              <div className="border border-gray-300 p-3 rounded mb-4">
+                <CardElement options={cardElementOptions} onChange={handleChange} />
+              </div>
+              <div className="text-sm text-gray-500 mb-4">
+                Test card: 4242 4242 4242 4242 | Exp: Any future date | CVC: Any 3 digits
+              </div>
             </div>
-            <div className="text-sm text-gray-500 mb-4">
-              Test card: 4242 4242 4242 4242 | Exp: Any future date | CVC: Any 3 digits
-            </div>
-          </div>
+          )}
           
           <div className="pt-4 border-t border-gray-200">
             <div className="flex justify-between items-center mb-4">
+              <span className="text-lg font-semibold">Subtotal:</span>
+              <span>€{cartState.total.toFixed(2)}</span>
+            </div>
+            <div className="flex justify-between items-center mb-4">
+              <span className="text-lg font-semibold">Shipping:</span>
+              <span>€{shippingCost.toFixed(2)}</span>
+            </div>
+            <div className="flex justify-between items-center mb-4">
               <span className="text-lg font-semibold">Total:</span>
               <span className="text-2xl font-bold text-primary-600">
-                €{cartState.total.toFixed(2)}
+                €{(cartState.total + shippingCost).toFixed(2)}
               </span>
             </div>
             
@@ -318,13 +390,12 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({ onSuccess, onCancel }) => {
               
               <button
                 type="submit"
-                disabled={processing || disabled || !clientSecret || succeeded}
+                disabled={processing || succeeded || (paymentMethod === 'card' && (disabled || !clientSecret))}
                 className={`w-2/3 px-6 py-3 rounded-lg font-medium ${
-                  processing || disabled || !clientSecret
+                  processing || (paymentMethod === 'card' ? (disabled || !clientSecret) : false)
                     ? 'bg-gray-400 cursor-not-allowed'
                     : 'bg-primary-500 hover:bg-primary-600 text-white'
-                } transition-colors`}
-              >
+                } transition-colors`}>
                 {processing ? (
                   <span className="flex items-center justify-center">
                     <svg
@@ -349,6 +420,8 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({ onSuccess, onCancel }) => {
                     </svg>
                     Processing...
                   </span>
+                ) : paymentMethod === 'cash' ? (
+                  'Place Order'
                 ) : (
                   'Pay Now'
                 )}
