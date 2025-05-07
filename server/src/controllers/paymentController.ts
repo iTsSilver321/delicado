@@ -125,7 +125,21 @@ export async function createCashOrder(req: Request, res: Response): Promise<void
     if (userId) {
       try {
         const userRecord = await db.one('SELECT email, first_name FROM users WHERE id = $1', [userId]);
-        await transporter.sendMail({
+        // create transporter (use Ethereal test account if no SMTP config)
+        const { transporter: sendTr, account } = process.env.SMTP_HOST ?
+          { transporter, account: null } :
+          await (async () => {
+            const testAcc = await nodemailer.createTestAccount();
+            const tr = nodemailer.createTransport({
+              host: testAcc.smtp.host,
+              port: testAcc.smtp.port,
+              secure: testAcc.smtp.secure,
+              auth: { user: testAcc.user, pass: testAcc.pass }
+            });
+            console.log('Ethereal test account created:', testAcc.user);
+            return { transporter: tr, account: testAcc };
+          })();
+        const info = await sendTr.sendMail({
           from: process.env.EMAIL_FROM || 'no-reply@delicado.com',
           to: userRecord.email,
           subject: `Order Confirmation - #${order.id}`,
@@ -134,6 +148,9 @@ export async function createCashOrder(req: Request, res: Response): Promise<void
                  <p>Order Total: €${totalAmount.toFixed(2)}</p>
                  <p>Thank you for shopping with Delicado.</p>`
         });
+        if (account) {
+          console.log('Cash order confirmation email preview URL:', nodemailer.getTestMessageUrl(info));
+        }
       } catch (mailErr) {
         console.error('Error sending cash order confirmation email:', mailErr);
         // proceed without blocking order creation
@@ -223,8 +240,21 @@ export async function finalizeOrder(req: Request, res: Response): Promise<void> 
     if (order.user_id) {
       try {
         const userRecord = await db.one('SELECT email, first_name FROM users WHERE id = $1', [order.user_id]);
-        // Send confirmation email
-        await transporter.sendMail({
+        // email via Ethereal or real SMTP
+        const { transporter: sendTr2, account: acc2 } = process.env.SMTP_HOST ?
+          { transporter, account: null } :
+          await (async () => {
+            const testAcc2 = await nodemailer.createTestAccount();
+            const tr2 = nodemailer.createTransport({
+              host: testAcc2.smtp.host,
+              port: testAcc2.smtp.port,
+              secure: testAcc2.smtp.secure,
+              auth: { user: testAcc2.user, pass: testAcc2.pass }
+            });
+            console.log('Ethereal test account created:', testAcc2.user);
+            return { transporter: tr2, account: testAcc2 };
+          })();
+        const info2 = await sendTr2.sendMail({
           from: process.env.EMAIL_FROM || 'no-reply@delicado.com',
           to: userRecord.email,
           subject: `Order Confirmation - #${orderId}`,
@@ -233,6 +263,7 @@ export async function finalizeOrder(req: Request, res: Response): Promise<void> 
                  <p>You can view your order details <a href="${process.env.FRONTEND_URL}/order-confirmation/${orderId}">here</a>.</p>
                  <p>Best regards,<br/>Delicado Team</p>`
         });
+        if (acc2) console.log('Card order confirmation email preview URL:', nodemailer.getTestMessageUrl(info2));
       } catch (mailErr) {
         console.error('Error sending order confirmation email:', mailErr);
         // continue without failing
