@@ -39,6 +39,9 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({ onSuccess, onCancel }) => {
     country: ''
   });
 
+  // Selected saved address index (-1 for new)
+  const [selectedAddressIndex, setSelectedAddressIndex] = useState<string>('');
+
   // Shipping method state
   const [shippingMethod, setShippingMethod] = useState(shippingOptions[0].name);
   const [shippingCost, setShippingCost] = useState(shippingOptions[0].cost);
@@ -52,6 +55,21 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({ onSuccess, onCancel }) => {
       }));
     }
   }, [user]);
+
+  const handleSavedAddressSelect = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const idx = e.target.value;
+    setSelectedAddressIndex(idx);
+    if (idx === '' || idx === '-1') {
+      // New address: clear fields except name
+      setShippingAddress({
+        fullName: user ? `${user.first_name} ${user.last_name}` : '',
+        street: '', city: '', state: '', postalCode: '', country: ''
+      });
+    } else {
+      const addr = user?.shipping_addresses?.[Number(idx)]!;
+      setShippingAddress(addr);
+    }
+  };
   
   const createPaymentIntent = async (): Promise<{clientSecret: string; orderId: number;} | null> => {
     try {
@@ -263,9 +281,29 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({ onSuccess, onCancel }) => {
         </div>
       ) : (
         <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Saved Address Selector */}
+          {user?.shipping_addresses?.length > 0 && (
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 mb-1">Saved Addresses</label>
+              <select
+                value={selectedAddressIndex}
+                onChange={handleSavedAddressSelect}
+                className="w-full p-2 border border-gray-300 rounded"
+              >
+                <option value="">Choose address...</option>
+                <option value="-1">Use New Address</option>
+                {user?.shipping_addresses?.map((addr: any, idx: number) => (
+                  <option key={idx} value={String(idx)}>
+                    {addr.fullName}, {addr.street}, {addr.city}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
           <div>
             <h3 className="text-lg font-semibold mb-4">Shipping Information</h3>
             <div className="grid grid-cols-1 gap-4">
+              {/* Shipping fields below use shippingAddress state populated above */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Full Name
@@ -277,6 +315,7 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({ onSuccess, onCancel }) => {
                   onChange={handleInputChange}
                   className="w-full p-2 border border-gray-300 rounded"
                   required
+                  disabled={selectedAddressIndex !== '' && selectedAddressIndex !== '-1'}
                 />
               </div>
               
@@ -291,6 +330,7 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({ onSuccess, onCancel }) => {
                   onChange={handleInputChange}
                   className="w-full p-2 border border-gray-300 rounded"
                   required
+                  disabled={selectedAddressIndex !== '' && selectedAddressIndex !== '-1'}
                 />
               </div>
               
@@ -306,6 +346,7 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({ onSuccess, onCancel }) => {
                     onChange={handleInputChange}
                     className="w-full p-2 border border-gray-300 rounded"
                     required
+                    disabled={selectedAddressIndex !== '' && selectedAddressIndex !== '-1'}
                   />
                 </div>
                 
@@ -320,6 +361,7 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({ onSuccess, onCancel }) => {
                     onChange={handleInputChange}
                     className="w-full p-2 border border-gray-300 rounded"
                     required
+                    disabled={selectedAddressIndex !== '' && selectedAddressIndex !== '-1'}
                   />
                 </div>
               </div>
@@ -336,6 +378,7 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({ onSuccess, onCancel }) => {
                     onChange={handleInputChange}
                     className="w-full p-2 border border-gray-300 rounded"
                     required
+                    disabled={selectedAddressIndex !== '' && selectedAddressIndex !== '-1'}
                   />
                 </div>
                 
@@ -350,6 +393,7 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({ onSuccess, onCancel }) => {
                     onChange={handleInputChange}
                     className="w-full p-2 border border-gray-300 rounded"
                     required
+                    disabled={selectedAddressIndex !== '' && selectedAddressIndex !== '-1'}
                   />
                 </div>
               </div>
