@@ -6,6 +6,7 @@ import Home from './components/Home';
 import Login from './components/auth/Login';
 import Register from './components/auth/Register';
 import Profile from './components/auth/Profile';
+import Orders from './components/auth/Orders';
 import ProtectedRoute from './components/auth/ProtectedRoute';
 import { useProducts } from './hooks/useProducts';
 import { CartProvider } from './contexts/CartContext';
@@ -63,6 +64,11 @@ const App: React.FC = () => {
                   <Route path="/profile" element={
                     <ProtectedRoute>
                       <Profile />
+                    </ProtectedRoute>
+                  } />
+                  <Route path="/orders" element={
+                    <ProtectedRoute>
+                      <Orders />
                     </ProtectedRoute>
                   } />
                   {/* New route for personalization flow */}
