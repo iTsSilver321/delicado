@@ -62,4 +62,16 @@ export class UserModel {
   static async verifyPassword(plainPassword: string, hashedPassword: string): Promise<boolean> {
     return bcrypt.compare(plainPassword, hashedPassword);
   }
+
+  static async updateById(id: number, updateData: Partial<{ first_name: string; last_name: string; phone?: string }>): Promise<User> {
+    const { first_name, last_name, phone } = updateData;
+    const updatedUser = await db.one(
+      `UPDATE users
+       SET first_name = $1, last_name = $2, phone = $3, updated_at = now()
+       WHERE id = $4
+       RETURNING *`,
+      [first_name, last_name, phone || null, id]
+    );
+    return updatedUser;
+  }
 }

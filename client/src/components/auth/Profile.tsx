@@ -4,6 +4,7 @@ import { api } from '../../config/api';
 
 const Profile: React.FC = () => {
   const { user, isLoading } = useAuth();
+  const { updateProfile } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({
     first_name: '',
@@ -35,25 +36,13 @@ const Profile: React.FC = () => {
     e.preventDefault();
     setIsSubmitting(true);
     setMessage({ type: '', text: '' });
-
     try {
-      // API endpoint for updating user profile would be implemented in the next phase
-      // await api.put(`/auth/profile`, formData);
-      
-      // For now, just simulate success
-      setTimeout(() => {
-        setMessage({ 
-          type: 'success', 
-          text: 'Profile updated successfully. Note: This is a simulation as the API endpoint is not yet implemented.' 
-        });
-        setIsEditing(false);
-        setIsSubmitting(false);
-      }, 1000);
+      await updateProfile(formData);
+      setMessage({ type: 'success', text: 'Profile updated successfully.' });
+      setIsEditing(false);
     } catch (error: any) {
-      setMessage({ 
-        type: 'error', 
-        text: error.response?.data?.message || 'Failed to update profile' 
-      });
+      setMessage({ type: 'error', text: error.response?.data?.message || 'Failed to update profile.' });
+    } finally {
       setIsSubmitting(false);
     }
   };

@@ -120,3 +120,23 @@ export const getProfile = async (req: Request, res: Response) => {
     return res.status(500).json({ message: 'Server error' });
   }
 };
+
+// Update user profile
+export const updateProfile = async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).user?.id;
+    if (!userId) {
+      return res.status(401).json({ message: 'Unauthorized' });
+    }
+    const { first_name, last_name, phone } = req.body;
+    // Call model to update user
+    const updated = await UserModel.updateById(userId, { first_name, last_name, phone });
+    // Exclude password
+    // @ts-ignore
+    const { password, ...userWithoutPassword } = updated;
+    return res.status(200).json(userWithoutPassword);
+  } catch (error) {
+    console.error('Update profile error:', error);
+    return res.status(500).json({ message: 'Server error during updating profile' });
+  }
+};

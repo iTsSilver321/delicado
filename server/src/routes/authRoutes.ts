@@ -36,4 +36,9 @@ router.get('/profile', auth, (req: Request, res: Response, next: NextFunction) =
   authController.getProfile(req, res).catch(next);
 });
 
+// Update profile route
+router.put('/profile', auth, (req, res, next) => {
+  authController.updateProfile(req, res).catch(next);
+});
+
 export default router;
