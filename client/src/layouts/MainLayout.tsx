@@ -244,21 +244,17 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
       </header>
 
       {/* Main Content Area */}
-      <main className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-          {/* Main Content */}
-          <div className={`transition-all duration-300 ${isCartOpen ? 'lg:col-span-8 xl:col-span-9' : 'lg:col-span-12'}`}>
-            {children}
-          </div>
-          {/* Cart Sidebar */}
-          {isCartOpen && (
-            <div className="lg:col-span-4 xl:col-span-3">
-              <div className="animate-slide-in">
-                 <Cart />
-              </div>
-            </div>
-          )}
+      <main className="w-full flex py-8">  
+        {/* Centered content wrapper */}
+        <div className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 flex-1 transition-all duration-300">
+          {children}
         </div>
+        {/* Cart Sidebar at right edge */}
+        {isCartOpen && (
+          <div className="w-100 flex-shrink-0 px-6 animate-slide-in">
+            <Cart />
+          </div>
+        )}
       </main>
 
       {/* Footer */}
