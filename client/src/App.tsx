@@ -17,6 +17,12 @@ import PersonalizationFlow from './components/personalization/PersonalizationFlo
 import Checkout from './components/checkout/Checkout';
 import OrderConfirmation from './components/checkout/OrderConfirmation';
 import DesignLibrary from './components/DesignLibrary';
+import AdminDashboard from './components/admin/AdminDashboard';
+import ProductsAdmin from './components/admin/ProductsAdmin';
+import DesignsAdmin from './components/admin/DesignsAdmin';
+import OrdersAdmin from './components/admin/OrdersAdmin';
+import UsersAdmin from './components/admin/UsersAdmin';
+import ContentAdmin from './components/admin/ContentAdmin';
 
 // Component to display all products on the /products page
 const AllProductsSection: React.FC = () => {
@@ -140,6 +146,20 @@ const App: React.FC = () => {
                   {/* Checkout routes */}
                   <Route path="/checkout" element={<Checkout />} />
                   <Route path="/order-confirmation/:orderId" element={<OrderConfirmation />} />
+
+                  {/* Admin routes */}
+                  <Route path="/admin" element={
+                    <ProtectedRoute requireAdmin>
+                      <AdminDashboard />
+                    </ProtectedRoute>
+                  }>
+                    <Route index element={<ProductsAdmin />} />
+                    <Route path="products" element={<ProductsAdmin />} />
+                    <Route path="designs" element={<DesignsAdmin />} />
+                    <Route path="orders" element={<OrdersAdmin />} />
+                    <Route path="users" element={<UsersAdmin />} />
+                    <Route path="content" element={<ContentAdmin />} />
+                  </Route>
                 </Routes>
               </MainLayout>
             </PersonalizationProvider>

@@ -72,3 +72,33 @@ export interface PersonalizationConfig {
   textOptions?: TextOption;
   previewUrl?: string; // URL to the generated preview image
 }
+
+export interface OrderAdmin {
+  id: number;
+  user_id: number | null;
+  email?: string | null;
+  status: 'pending' | 'processing' | 'completed' | 'cancelled' | 'refunded';
+  total_amount: number;
+  created_at: string;
+}
+
+export interface UserAdmin {
+  id: number;
+  email: string;
+  first_name: string;
+  last_name: string;
+  phone?: string;
+  shipping_addresses?: any;
+  is_admin: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ContentPage {
+  id: number;
+  slug: string;
+  title: string;
+  content: string;
+  created_at: string;
+  updated_at: string;
+}

@@ -93,4 +93,19 @@ export class UserModel {
     );
     return updated;
   }
+
+  // Add method to list all users
+  static async findAll(): Promise<User[]> {
+    const users = await db.any('SELECT * FROM users ORDER BY created_at DESC');
+    return users;
+  }
+
+  // Add method to set admin flag
+  static async setAdmin(id: number, isAdmin: boolean): Promise<User> {
+    const updated = await db.one(
+      `UPDATE users SET is_admin = $1, updated_at = now() WHERE id = $2 RETURNING *`,
+      [isAdmin, id]
+    );
+    return updated;
+  }
 }

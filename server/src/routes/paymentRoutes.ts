@@ -5,7 +5,9 @@ import {
     getOrderById,
     getOrdersByUser,
     finalizeOrder,
-    createCashOrder
+    createCashOrder,
+    listAllOrders,
+    updateOrderStatus
 } from '../controllers/paymentController';
 import { auth } from '../middleware/auth';
 
@@ -60,6 +62,24 @@ const createCashOrderHandler: RequestHandler = async (req, res, next) => {
   }
 };
 
+// Admin: list all orders
+const listAllOrdersHandler: RequestHandler = async (req, res, next) => {
+  try {
+    await listAllOrders(req, res);
+  } catch (err) {
+    next(err);
+  }
+};
+
+// Admin: update order status
+const updateOrderStatusHandler: RequestHandler = async (req, res, next) => {
+  try {
+    await updateOrderStatus(req, res);
+  } catch (err) {
+    next(err);
+  }
+};
+
 // Create payment intent
 router.post('/create-payment-intent', createPaymentIntentHandler);
 
@@ -79,5 +99,9 @@ router.post('/finalize-order', finalizeOrderHandler);
 
 // Create cash order (guest or logged-in)
 router.post('/cash-order', createCashOrderHandler);
+
+// Admin routes
+router.get('/admin/orders', auth, listAllOrdersHandler);
+router.put('/admin/orders/:id', auth, updateOrderStatusHandler);
 
 export default router;

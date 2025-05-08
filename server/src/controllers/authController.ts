@@ -185,3 +185,43 @@ export const manageAddresses = async (req: Request, res: Response) => {
     return res.status(500).json({ message: 'Server error during address update' });
   }
 };
+
+// List all users (admin only)
+export const listUsers = async (req: Request, res: Response) => {
+  try {
+    const user = (req as any).user;
+    if (!user?.is_admin) {
+      return res.status(403).json({ message: 'Forbidden' });
+    }
+    const users = await UserModel.findAll();
+    const sanitized = users.map(u => {
+      const { password, ...rest } = u;
+      return rest;
+    });
+    res.json(sanitized);
+  } catch (err) {
+    console.error('Error listing users:', err);
+    res.status(500).json({ message: 'Failed to list users' });
+  }
+};
+
+// Update user admin status (admin only)
+export const updateUserAdmin = async (req: Request, res: Response) => {
+  try {
+    const current = (req as any).user;
+    if (!current?.is_admin) {
+      return res.status(403).json({ message: 'Forbidden' });
+    }
+    const id = parseInt(req.params.id, 10);
+    const { is_admin } = req.body;
+    if (typeof is_admin !== 'boolean') {
+      return res.status(400).json({ message: 'Invalid is_admin flag' });
+    }
+    const updated = await UserModel.setAdmin(id, is_admin);
+    const { password, ...rest } = updated;
+    res.json({ message: 'User updated', user: rest });
+  } catch (err) {
+    console.error('Error updating user:', err);
+    res.status(500).json({ message: 'Failed to update user' });
+  }
+};

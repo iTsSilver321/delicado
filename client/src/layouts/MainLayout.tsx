@@ -204,6 +204,17 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                 </div>
               )}
 
+              {isAuthenticated && user?.is_admin && (
+                <Link
+                  to="/admin"
+                  className={`hover:text-primary-600 transition-colors ${
+                    location.pathname.startsWith('/admin') ? 'text-primary-600 font-semibold' : 'text-gray-600 dark:text-gray-300'
+                  }`}
+                >
+                  Admin Dashboard
+                </Link>
+              )}
+
               {/* Cart button */}
               <button
                 onClick={() => setIsCartOpen(!isCartOpen)}

@@ -311,3 +311,50 @@ export async function getOrdersByUser(req: Request, res: Response): Promise<void
   );
   res.json(orders);
 }
+
+// List all orders (admin)
+export async function listAllOrders(req: Request, res: Response): Promise<void> {
+  try {
+    // only admin allowed
+    const user = (req as any).user;
+    if (!user?.is_admin) {
+      res.status(403).json({ error: 'Forbidden' });
+      return;
+    }
+    const orders = await db.any(`
+      SELECT o.id, o.user_id, o.status, o.total_amount, o.created_at,
+             o.shipping_address, o.items, u.email
+      FROM orders o
+      LEFT JOIN users u ON u.id = o.user_id
+      ORDER BY o.created_at DESC
+    `);
+    res.json(orders);
+  } catch (err) {
+    console.error('Error listing all orders:', err);
+    res.status(500).json({ error: 'Failed to list orders' });
+  }
+}
+
+// Update order status (admin)
+export async function updateOrderStatus(req: Request, res: Response): Promise<void> {
+  try {
+    const user = (req as any).user;
+    if (!user?.is_admin) {
+      res.status(403).json({ error: 'Forbidden' });
+      return;
+    }
+    const id = parseInt(req.params.id, 10);
+    const { status } = req.body;
+    if (!['pending','processing','completed','cancelled','refunded'].includes(status)) {
+      res.status(400).json({ error: 'Invalid status' });
+      return;
+    }
+    await db.none(`
+      UPDATE orders SET status = $1, updated_at = CURRENT_TIMESTAMP WHERE id = $2
+    `, [status, id]);
+    res.json({ message: 'Order status updated' });
+  } catch (err) {
+    console.error('Error updating order status:', err);
+    res.status(500).json({ error: 'Failed to update order status' });
+  }
+}
