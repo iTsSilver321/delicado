@@ -48,7 +48,7 @@ const OrdersAdmin: React.FC = () => {
               <td className="border px-4 py-2">{o.id}</td>
               <td className="border px-4 py-2">{o.email || 'Guest'}</td>
               <td className="border px-4 py-2">{new Date(o.created_at).toLocaleDateString()}</td>
-              <td className="border px-4 py-2">{o.total_amount.toFixed(2)}</td>
+              <td className="border px-4 py-2">{Number(o.total_amount).toFixed(2)}</td>
               <td className="border px-4 py-2">
                 <select
                   value={o.status}

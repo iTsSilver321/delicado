@@ -23,11 +23,13 @@ export const auth = (req: Request, res: Response, next: NextFunction): void => {
     // Verify token
     const decoded = jwt.verify(token, JWT_SECRET) as JwtPayload;
     
-    // Add user from payload to request
+    // Add user from payload to request with both naming conventions
+    const isAdminFlag = decoded.isAdmin ?? decoded.is_admin ?? false;
     (req as any).user = {
       id: decoded.id,
       email: decoded.email,
-      isAdmin: decoded.isAdmin || decoded.is_admin // Handle both naming conventions
+      isAdmin: isAdminFlag,
+      is_admin: isAdminFlag
     };
 
     next();

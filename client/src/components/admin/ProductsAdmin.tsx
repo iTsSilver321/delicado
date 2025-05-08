@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, Outlet } from 'react-router-dom';
 import api from '../../config/api';
 import { Product } from '../../types';
 
@@ -71,6 +71,8 @@ const ProductsAdmin: React.FC = () => {
           ))}
         </tbody>
       </table>
+      {/* Nested routes (create/edit) */}
+      <Outlet />
     </div>
   );
 };

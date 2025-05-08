@@ -52,7 +52,7 @@ export interface DesignTemplate {
   description: string;
   image_url: string;
   category: string;
-  applicable_products: string[]; // Categories or product IDs this template can be applied to
+  applicable_products: number[]; // Product IDs this template can be applied to
 }
 
 export interface TextOption {

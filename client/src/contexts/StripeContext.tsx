@@ -1,7 +1,6 @@
 /// <reference types="vite/client" />
 
 import React, { createContext, useContext, ReactNode, useState } from 'react';
-console.log('Stripe key:', import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements } from '@stripe/react-stripe-js';
 

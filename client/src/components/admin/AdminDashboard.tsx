@@ -8,11 +8,11 @@ const AdminDashboard: React.FC = () => {
     <div className="max-w-7xl mx-auto p-6">
       <h1 className="text-3xl font-bold mb-6">Admin Dashboard</h1>
       <nav className="mb-4 space-x-4">
-        <NavLink to="products" className={linkClass}>Products</NavLink>
-        <NavLink to="designs" className={linkClass}>Design Templates</NavLink>
-        <NavLink to="orders" className={linkClass}>Orders</NavLink>
-        <NavLink to="users" className={linkClass}>Users</NavLink>
-        <NavLink to="content" className={linkClass}>Content Pages</NavLink>
+        <NavLink to="/admin/products" className={linkClass}>Products</NavLink>
+        <NavLink to="/admin/designs" className={linkClass}>Design Templates</NavLink>
+        <NavLink to="/admin/orders" className={linkClass}>Orders</NavLink>
+        <NavLink to="/admin/users" className={linkClass}>Users</NavLink>
+        <NavLink to="/admin/content" className={linkClass}>Content Pages</NavLink>
       </nav>
       <div className="mt-6">
         <Outlet />

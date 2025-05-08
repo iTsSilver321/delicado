@@ -19,7 +19,9 @@ import OrderConfirmation from './components/checkout/OrderConfirmation';
 import DesignLibrary from './components/DesignLibrary';
 import AdminDashboard from './components/admin/AdminDashboard';
 import ProductsAdmin from './components/admin/ProductsAdmin';
+import ProductForm from './components/admin/ProductForm';
 import DesignsAdmin from './components/admin/DesignsAdmin';
+import DesignForm from './components/admin/DesignForm';
 import OrdersAdmin from './components/admin/OrdersAdmin';
 import UsersAdmin from './components/admin/UsersAdmin';
 import ContentAdmin from './components/admin/ContentAdmin';
@@ -148,14 +150,21 @@ const App: React.FC = () => {
                   <Route path="/order-confirmation/:orderId" element={<OrderConfirmation />} />
 
                   {/* Admin routes */}
-                  <Route path="/admin" element={
+                  <Route path="/admin/*" element={
                     <ProtectedRoute requireAdmin>
                       <AdminDashboard />
                     </ProtectedRoute>
                   }>
+                    {/* Products management */}
                     <Route index element={<ProductsAdmin />} />
                     <Route path="products" element={<ProductsAdmin />} />
+                    <Route path="products/create" element={<ProductForm />} />
+                    <Route path="products/:id/edit" element={<ProductForm />} />
+                    {/* Design templates management */}
                     <Route path="designs" element={<DesignsAdmin />} />
+                    <Route path="designs/create" element={<DesignForm />} />
+                    <Route path="designs/:id/edit" element={<DesignForm />} />
+                    {/* Other admin sections */}
                     <Route path="orders" element={<OrdersAdmin />} />
                     <Route path="users" element={<UsersAdmin />} />
                     <Route path="content" element={<ContentAdmin />} />

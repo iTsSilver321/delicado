@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { Outlet } from 'react-router-dom';
 import api from '../../config/api';
 import { DesignTemplate } from '../../types';
 import { handleImageError } from '../../utils/imageUtils';
@@ -64,6 +65,8 @@ const DesignsAdmin: React.FC = () => {
           ))}
         </tbody>
       </table>
+      {/* Nested routes (create/edit) */}
+      <Outlet />
     </div>
   );
 };
