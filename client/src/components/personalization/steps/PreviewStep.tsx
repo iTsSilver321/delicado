@@ -167,7 +167,7 @@ const PreviewStep: React.FC = () => {
             
             <button 
               onClick={handleAddToCart}
-              className="px-8 py-3 bg-primary-500 text-white rounded-md hover:bg-primary-600 transition-colors flex items-center gap-2"
+              className="btn-cart flex items-center gap-2"
               disabled={state.product.stock <= 0}
             >
               {state.product.stock > 0 ? (

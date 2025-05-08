@@ -8,11 +8,19 @@ const Home: React.FC = () => {
 
   return (
     <div className="space-y-12">
-      <section className="text-center space-y-4">
-        <h1 className="text-4xl font-bold text-gray-900">Welcome to Delicado</h1>
-        <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-          Discover our collection of premium home textiles designed for your comfort
-        </p>
+      <section className="bg-gradient-to-r from-primary-500 to-secondary-500 py-20 rounded-xl mx-4 sm:mx-0">
+        <div className="max-w-4xl mx-auto text-center text-white space-y-4 px-4">
+          <h1 className="text-5xl font-extrabold tracking-tight">Welcome to Delicado</h1>
+          <p className="text-lg opacity-90">
+            Discover our premium home textiles designed for ultimate comfort and style.
+          </p>
+          <Link
+            to="/products"
+            className="btn-primary text-lg px-6 py-3 mt-4 inline-block"
+          >
+            Shop Now
+          </Link>
+        </div>
       </section>
 
       <section className="space-y-6">
@@ -20,9 +28,9 @@ const Home: React.FC = () => {
           <h2 className="text-2xl font-semibold text-gray-900">Featured Products</h2>
           <Link
             to="/products"
-            className="text-primary-600 hover:text-primary-700 font-medium transition-colors"
+            className="btn-gradient-blue-green text-sm"
           >
-            View All Products →
+            View All Products
           </Link>
         </div>
 

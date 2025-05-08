@@ -13,7 +13,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
   const price = Number(product.price);
 
   return (
-    <div className="bg-white rounded-lg shadow-md flex flex-col overflow-hidden">
+    <div className="group bg-white rounded-lg shadow-md flex flex-col overflow-hidden transform transition duration-300 hover:shadow-lg hover:scale-105">
       {/* Image container with fixed height */}
       <div className="relative w-full h-56 bg-zinc-100">
         <img
@@ -44,7 +44,7 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
             </div>
         </div>
         {/* Footer section */}
-        <div className="pt-4 border-t border-zinc-100">
+        <div className="pt-4 border-t border-zinc-100 space-y-2">
           <div className="flex justify-between items-center flex-wrap gap-2">
             <span className="text-lg font-bold text-primary-500">
               ${price.toFixed(2)}
@@ -52,14 +52,14 @@ const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
             <div className="flex gap-2">
               <Link
                 to={`/personalize/${product.id}`}
-                className="btn-secondary whitespace-nowrap text-sm"
+                className="btn-personalize whitespace-nowrap text-sm"
                 aria-disabled={product.stock === 0}
               >
                 Personalize
               </Link>
               <button
                 onClick={() => addItem(product)}
-                className="btn-primary whitespace-nowrap"
+                className="btn-cart whitespace-nowrap"
                 disabled={product.stock === 0}
               >
                 {product.stock > 0 ? 'Add to Cart' : 'Out of Stock'}

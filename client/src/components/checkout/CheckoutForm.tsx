@@ -225,7 +225,7 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({ onSuccess, onCancel }) => {
   };
   
   return (
-    <div className="bg-white p-6 rounded-lg shadow-md">
+    <div className="form-card space-y-6">
       <h2 className="text-2xl font-bold text-gray-800 mb-6">Checkout</h2>
 
       {/* Payment Method Selection */}
@@ -288,7 +288,7 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({ onSuccess, onCancel }) => {
               <select
                 value={selectedAddressIndex}
                 onChange={handleSavedAddressSelect}
-                className="w-full p-2 border border-gray-300 rounded"
+                className="input-field"
               >
                 <option value="">Choose address...</option>
                 <option value="-1">Use New Address</option>
@@ -313,7 +313,7 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({ onSuccess, onCancel }) => {
                   name="fullName"
                   value={shippingAddress.fullName}
                   onChange={handleInputChange}
-                  className="w-full p-2 border border-gray-300 rounded"
+                  className="input-field"
                   required
                   disabled={selectedAddressIndex !== '' && selectedAddressIndex !== '-1'}
                 />
@@ -328,7 +328,7 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({ onSuccess, onCancel }) => {
                   name="street"
                   value={shippingAddress.street}
                   onChange={handleInputChange}
-                  className="w-full p-2 border border-gray-300 rounded"
+                  className="input-field"
                   required
                   disabled={selectedAddressIndex !== '' && selectedAddressIndex !== '-1'}
                 />
@@ -344,7 +344,7 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({ onSuccess, onCancel }) => {
                     name="city"
                     value={shippingAddress.city}
                     onChange={handleInputChange}
-                    className="w-full p-2 border border-gray-300 rounded"
+                    className="input-field"
                     required
                     disabled={selectedAddressIndex !== '' && selectedAddressIndex !== '-1'}
                   />
@@ -359,7 +359,7 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({ onSuccess, onCancel }) => {
                     name="state"
                     value={shippingAddress.state}
                     onChange={handleInputChange}
-                    className="w-full p-2 border border-gray-300 rounded"
+                    className="input-field"
                     required
                     disabled={selectedAddressIndex !== '' && selectedAddressIndex !== '-1'}
                   />
@@ -376,7 +376,7 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({ onSuccess, onCancel }) => {
                     name="postalCode"
                     value={shippingAddress.postalCode}
                     onChange={handleInputChange}
-                    className="w-full p-2 border border-gray-300 rounded"
+                    className="input-field"
                     required
                     disabled={selectedAddressIndex !== '' && selectedAddressIndex !== '-1'}
                   />
@@ -391,7 +391,7 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({ onSuccess, onCancel }) => {
                     name="country"
                     value={shippingAddress.country}
                     onChange={handleInputChange}
-                    className="w-full p-2 border border-gray-300 rounded"
+                    className="input-field"
                     required
                     disabled={selectedAddressIndex !== '' && selectedAddressIndex !== '-1'}
                   />
@@ -415,7 +415,7 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({ onSuccess, onCancel }) => {
             </div>
           )}
           
-          <div className="pt-4 border-t border-gray-200">
+          <div className="pt-4 border-t border-gray-200 space-y-4">
             <div className="flex justify-between items-center mb-4">
               <span className="text-lg font-semibold">Subtotal:</span>
               <span>€{cartState.total.toFixed(2)}</span>
@@ -435,20 +435,18 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({ onSuccess, onCancel }) => {
               <button
                 type="button"
                 onClick={onCancel}
-                className="px-6 py-3 bg-gray-200 hover:bg-gray-300 rounded-lg transition-colors font-medium"
+                className="btn-secondary"
               >
                 Cancel
               </button>
               
               <button
                 type="submit"
-                // disable only if processing, already succeeded, or card input is empty
                 disabled={processing || succeeded || (paymentMethod === 'card' && disabled)}
-                className={`w-2/3 px-6 py-3 rounded-lg font-medium ${
-                  processing || (paymentMethod === 'card' && disabled)
-                    ? 'bg-gray-400 cursor-not-allowed'
-                    : 'bg-primary-500 hover:bg-primary-600 text-white'
-                } transition-colors`}>
+                className={`btn-primary w-2/3 ${
+                  (processing || (paymentMethod === 'card' && disabled)) ? 'opacity-50 cursor-not-allowed' : ''
+                }`}
+              >
                 {processing ? (
                   <span className="flex items-center justify-center">
                     <svg

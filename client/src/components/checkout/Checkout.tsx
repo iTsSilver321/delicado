@@ -14,7 +14,7 @@ const Checkout: React.FC = () => {
         <p className="mb-6">Add some products to your cart before checkout.</p>
         <button
           onClick={() => navigate('/products')}
-          className="px-6 py-2 bg-primary-500 text-white rounded-md hover:bg-primary-600 transition-colors"
+          className="btn-primary"
         >
           Browse Products
         </button>
@@ -34,7 +34,7 @@ const Checkout: React.FC = () => {
     <div className="max-w-3xl mx-auto py-8 px-4">
       <h1 className="text-3xl font-bold text-gray-900 mb-8">Checkout</h1>
       
-      <div className="bg-white rounded-lg shadow-md p-6 mb-8">
+      <div className="form-card mb-8">  
         <h2 className="text-xl font-bold mb-4">Order Summary</h2>
         <div className="space-y-4">
           {cartState.items.map((item) => (

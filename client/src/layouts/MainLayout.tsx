@@ -68,10 +68,10 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
       <header className="bg-white text-gray-800 shadow-md sticky top-0 z-50 dark:bg-gray-900 dark:text-gray-100">
         <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
+          <div className="flex items-center gap-4">
               <Link
                 to="/"
-                className="text-2xl font-bold text-primary-600 hover:text-primary-700 transition-colors dark:text-primary-300 dark:hover:text-primary-400"
+                className="nav-brand"
                 onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
               >
                 Delicado
@@ -79,8 +79,11 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
               <button
                 type="button"
                 onClick={handleAboutUsClick}
-                className="text-lg font-semibold text-primary-600 hover:text-primary-700 transition-colors dark:text-primary-300 dark:hover:text-primary-400 px-2 py-1 rounded"
+                className="nav-link flex items-center gap-1"
               >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M12 20a8 8 0 100-16 8 8 0 000 16z" />
+                </svg>
                 About Us
               </button>
             </div>
@@ -106,26 +109,29 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
               <div className="flex gap-4">
                 <Link
                   to="/"
-                  className={`hover:text-primary-600 transition-colors ${
-                    location.pathname === '/' ? 'text-primary-600 font-semibold' : 'text-gray-600 dark:text-gray-300'
-                  }`}
+                  className={`nav-link flex items-center gap-1 ${location.pathname === '/' ? 'text-pink-600 scale-105' : ''}`}
                 >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7m-9 2v8m0 0h4m-4 0H7m8 0h4m-4 0v-8" />
+                  </svg>
                   Home
                 </Link>
                 <Link
                   to="/products"
-                  className={`hover:text-primary-600 transition-colors ${
-                    location.pathname.startsWith('/products') ? 'text-primary-600 font-semibold' : 'text-gray-600 dark:text-gray-300'
-                  }`}
+                  className={`nav-link flex items-center gap-1 ${location.pathname.startsWith('/products') ? 'text-pink-600 scale-105' : ''}`}
                 >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 11V5a4 4 0 10-8 0v6M5 11h14l1 9H4l1-9z" />
+                  </svg>
                   Products
                 </Link>
                 <Link
                   to="/design-library"
-                  className={`hover:text-primary-600 transition-colors ${
-                    location.pathname.startsWith('/design-library') ? 'text-primary-600 font-semibold' : 'text-gray-600 dark:text-gray-300'
-                  }`}
+                  className={`nav-link flex items-center gap-1 ${location.pathname.startsWith('/design-library') ? 'text-pink-600 scale-105' : ''}`}
                 >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V7a2 2 0 00-2-2H6a2 2 0 00-2 2v6M20 13l-8 5-8-5M20 13v6a2 2 0 01-2 2H6a2 2 0 01-2-2v-6" />
+                  </svg>
                   Design Library
                 </Link>
               </div>
@@ -135,12 +141,12 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
                 <div className="relative" ref={userMenuRef}>
                   <button
                     onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-                    className="flex items-center gap-2 py-1 px-3 rounded-full bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 transition-colors"
+                    className="profile-btn"
                   >
                     <span className="font-medium">{user?.first_name}</span>
                     {/* User Icon */}
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 0 0118 0z" />
                     </svg>
                   </button>
 
@@ -239,7 +245,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
 
       {/* Main Content Area */}
       <main className="max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-1">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8"> {/* Changed to 12 columns for more flexibility */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
           {/* Main Content */}
           <div className={`transition-all duration-300 ${isCartOpen ? 'lg:col-span-8 xl:col-span-9' : 'lg:col-span-12'}`}>
             {children}
@@ -247,7 +253,6 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
           {/* Cart Sidebar */}
           {isCartOpen && (
             <div className="lg:col-span-4 xl:col-span-3">
-              {/* Added a subtle animation */}
               <div className="animate-slide-in">
                  <Cart />
               </div>
