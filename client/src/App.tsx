@@ -70,7 +70,7 @@ const AllProductsSection: React.FC = () => {
 
   if (error) {
     return (
-      <div className="text-center text-red-500 p-4 bg-red-100 rounded-md">
+      <div className="text-center text-red-500 p-4 bg-red-100 rounded-md dark:bg-red-800 dark:text-red-300">
         Error loading products: {error}
       </div>
     );
@@ -85,12 +85,12 @@ const AllProductsSection: React.FC = () => {
           value={searchTerm}
           onChange={e => setSearchTerm(e.target.value)}
           placeholder="Search products..."
-          className="border rounded-md px-3 py-2 w-full md:w-1/3"
+          className="border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 w-full md:w-1/3 bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:ring-1 focus:ring-primary-500 focus:border-primary-500 transition-colors"
         />
         <select
           value={categoryFilter}
           onChange={e => setCategoryFilter(e.target.value)}
-          className="border rounded-md px-3 py-2 w-full md:w-1/4"
+          className="border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 w-full md:w-1/4 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-1 focus:ring-primary-500 focus:border-primary-500 transition-colors"
         >
           {categories.map(cat => (
             <option key={cat} value={cat}>{cat}</option>
@@ -99,7 +99,7 @@ const AllProductsSection: React.FC = () => {
         <select
           value={sortOption}
           onChange={e => setSortOption(e.target.value)}
-          className="border rounded-md px-3 py-2 w-full md:w-1/4"
+          className="border border-gray-300 dark:border-gray-600 rounded-md px-3 py-2 w-full md:w-1/4 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-1 focus:ring-primary-500 focus:border-primary-500 transition-colors"
         >
           <option value="newest">Newest</option>
           <option value="price-asc">Price: Low to High</option>
@@ -123,7 +123,7 @@ const App: React.FC = () => {
                   <Route path="/" element={<Home />} />
                   <Route path="/products" element={
                     <div className="space-y-8">
-                      <h2 className="text-3xl font-bold text-gray-900 mb-6">
+                      <h2 className="text-3xl font-bold text-gray-900 mb-6 dark:text-white">
                         Our Products
                       </h2>
                       <AllProductsSection />

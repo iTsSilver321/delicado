@@ -27,6 +27,10 @@ const OrderConfirmation: React.FC = () => {
         }
         
         const orderData = await paymentService.getOrderById(parseInt(orderId));
+        // Ensure total_amount is a number before setting the state
+        if (orderData && typeof orderData.total_amount === 'string') {
+          orderData.total_amount = parseFloat(orderData.total_amount);
+        }
         setOrder(orderData);
       } catch (err) {
         console.error('Error fetching order:', err);
@@ -42,22 +46,17 @@ const OrderConfirmation: React.FC = () => {
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-[400px]">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-500"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-500 dark:border-primary-400"></div>
       </div>
     );
   }
   
   if (error || !order) {
     return (
-      <div className="text-center py-12">
-        <h2 className="text-2xl font-bold text-red-600 mb-4">Error</h2>
-        <p className="mb-6">{error || 'Failed to load order details'}</p>
-        <Link
-          to="/"
-          className="px-6 py-2 bg-primary-500 text-white rounded-md hover:bg-primary-600 transition-colors"
-        >
-          Return to Home
-        </Link>
+      <div className="text-center py-12 dark:text-gray-300">
+        <h2 className="text-2xl font-bold text-red-600 dark:text-red-400 mb-4">Error</h2>
+        <p className="mb-6">{error || 'Order not found.'}</p>
+        <button onClick={() => window.history.back()} className="btn-secondary dark:bg-gray-600 dark:text-white dark:hover:bg-gray-500">Go Back</button>
       </div>
     );
   }
@@ -71,82 +70,63 @@ const OrderConfirmation: React.FC = () => {
   };
   
   return (
-    <div className="max-w-3xl mx-auto py-8 px-4">
-      <div className="text-center bg-green-100 rounded-lg p-6 mb-8">
-        <svg className="w-16 h-16 text-green-500 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-        </svg>
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Thank You!</h1>
-        <p className="text-lg text-gray-600 mb-0">Your order has been placed successfully.</p>
+    <div className="max-w-3xl mx-auto py-8 px-4 dark:bg-gray-800">
+      <div className="text-center bg-green-100 rounded-lg p-6 mb-8 dark:bg-green-700/30">
+        <svg className="w-16 h-16 text-green-500 dark:text-green-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+        <h1 className="text-3xl font-bold text-green-700 dark:text-green-300 mb-2">Order Confirmed!</h1>
+        <p className="text-green-600 dark:text-green-400">Thank you for your purchase. Your order #<span className="font-semibold">{order.id}</span> has been placed.</p>
       </div>
       
-      <div className="bg-white rounded-lg shadow-md p-6 mb-8">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-bold">Order #{order.id}</h2>
-          <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium capitalize">
-            {order.status}
-          </span>
-        </div>
-        
-        <p className="text-gray-500 mb-4">
-          Placed on {formatDate(order.created_at)}
-        </p>
-        
-        <h3 className="text-lg font-semibold mb-4 mt-6">Order Items</h3>
-        <div className="space-y-4 mb-6">
-          {order.items.map((item: any, index: number) => (
-            <div key={index} className="flex justify-between items-center border-b pb-4">
-              <div className="flex items-center">
-                <div className="w-16 h-16 flex-shrink-0 overflow-hidden rounded-md">
-                  <img
-                    src={item.image_url}
-                    alt={item.name}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-                <div className="ml-4">
-                  <h4 className="text-base font-medium text-gray-900">{item.name}</h4>
-                  <p className="text-sm text-gray-500">Qty: {item.quantity}</p>
-                </div>
-              </div>
-              <p className="text-sm font-medium text-gray-900">
-                €{(Number(item.price) * item.quantity).toFixed(2)}
-              </p>
-            </div>
-          ))}
-        </div>
-        
-        <div className="border-t pt-4 mb-6">
-          <div className="flex justify-between items-center">
-            <p className="text-base font-medium">Total</p>
-            <p className="text-lg font-bold text-primary-600">
-              €{Number(order.total_amount).toFixed(2)}
-            </p>
-          </div>
-        </div>
-        
-        {order.shipping_address && (
+      <div className="bg-white rounded-lg shadow-md p-6 mb-8 dark:bg-gray-700">
+        <h2 className="text-xl font-semibold text-gray-800 dark:text-white mb-6 border-b pb-3 dark:border-gray-600">Order Details</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
           <div>
-            <h3 className="text-lg font-semibold mb-2">Shipping Address</h3>
-            <div className="text-gray-700">
-              <p>{order.shipping_address.fullName}</p>
-              <p>{order.shipping_address.street}</p>
-              <p>
-                {order.shipping_address.city}, {order.shipping_address.state} {order.shipping_address.postalCode}
-              </p>
-              <p>{order.shipping_address.country}</p>
-            </div>
+            <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">Order ID</h3>
+            <p className="text-gray-800 dark:text-white font-semibold">{order.id}</p>
           </div>
-        )}
+          <div>
+            <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">Order Date</h3>
+            <p className="text-gray-800 dark:text-white font-semibold">{formatDate(order.created_at)}</p>
+          </div>
+          <div>
+            <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">Order Status</h3>
+            <p className="text-gray-800 dark:text-white font-semibold capitalize">{order.status}</p>
+          </div>
+          <div>
+            <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400">Order Total</h3>
+            <p className="text-gray-800 dark:text-white font-semibold">€{order.total_amount.toFixed(2)}</p>
+          </div>
+        </div>
+
+        <div className="mb-6">
+          <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-3">Shipping Address</h3>
+          <address className="not-italic text-gray-600 dark:text-gray-300">
+            {order.shipping_address.fullName}<br />
+            {order.shipping_address.street}<br />
+            {order.shipping_address.city}, {order.shipping_address.state} {order.shipping_address.postalCode}<br />
+            {order.shipping_address.country}
+          </address>
+        </div>
+
+        <div>
+          <h3 className="text-lg font-semibold text-gray-800 dark:text-white mb-4">Items Ordered</h3>
+          <ul className="space-y-3">
+            {order.items.map((item: any) => (
+              <li key={item.id} className="flex justify-between items-start p-3 bg-gray-50 dark:bg-gray-600 rounded-md">
+                <div className="flex-grow">
+                  <p className="font-medium text-gray-800 dark:text-white">{item.name}</p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">Quantity: {item.quantity}</p>
+                </div>
+                <p className="text-gray-800 dark:text-white font-semibold">€{(item.price * item.quantity).toFixed(2)}</p>
+              </li>
+            ))}
+          </ul>
+        </div>
       </div>
       
       <div className="text-center">
-        <Link
-          to="/products"
-          className="px-6 py-2 bg-primary-500 text-white rounded-md hover:bg-primary-600 transition-colors"
-        >
-          Continue Shopping
-        </Link>
+        <button onClick={() => window.location.href = '/products'} className="btn-primary mr-4">Continue Shopping</button>
+        <button onClick={() => window.location.href = '/orders'} className="btn-secondary dark:bg-gray-600 dark:text-white dark:hover:bg-gray-500">View My Orders</button>
       </div>
     </div>
   );

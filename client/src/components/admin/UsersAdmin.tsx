@@ -25,39 +25,39 @@ const UsersAdmin: React.FC = () => {
       .finally(() => setUpdatingId(null));
   };
 
-  if (loading) return <p>Loading users...</p>;
-  if (error) return <p className="text-red-600">{error}</p>;
+  if (loading) return <p className="dark:text-neutral-light">Loading users...</p>;
+  if (error) return <p className="text-red-600 dark:text-red-400">{error}</p>;
 
   return (
-    <div>
-      <h2 className="text-2xl font-semibold mb-4">Manage Users</h2>
+    <div className="p-4 md:p-8 bg-background dark:bg-background-dark min-h-screen">
+      <h2 className="text-2xl font-semibold mb-4 dark:text-white">Manage Users</h2>
       <table className="w-full table-auto border-collapse">
         <thead>
-          <tr className="bg-gray-200">
-            <th className="border px-4 py-2">ID</th>
-            <th className="border px-4 py-2">Name</th>
-            <th className="border px-4 py-2">Email</th>
-            <th className="border px-4 py-2">Admin</th>
-            <th className="border px-4 py-2">Action</th>
+          <tr className="bg-gray-200 dark:bg-gray-700">
+            <th className="border px-4 py-2 dark:text-gray-200 dark:border-gray-600">ID</th>
+            <th className="border px-4 py-2 dark:text-gray-200 dark:border-gray-600">Name</th>
+            <th className="border px-4 py-2 dark:text-gray-200 dark:border-gray-600">Email</th>
+            <th className="border px-4 py-2 dark:text-gray-200 dark:border-gray-600">Admin</th>
+            <th className="border px-4 py-2 dark:text-gray-200 dark:border-gray-600">Action</th>
           </tr>
         </thead>
         <tbody>
           {users.map(u => (
             <tr key={u.id}>
-              <td className="border px-4 py-2">{u.id}</td>
-              <td className="border px-4 py-2">{u.first_name} {u.last_name}</td>
-              <td className="border px-4 py-2">{u.email}</td>
-              <td className="border px-4 py-2 text-center">{u.is_admin ? 'Yes' : 'No'}</td>
-              <td className="border px-4 py-2 text-center">
+              <td className="border px-4 py-2 dark:text-gray-300 dark:border-gray-600">{u.id}</td>
+              <td className="border px-4 py-2 dark:text-gray-300 dark:border-gray-600">{u.first_name} {u.last_name}</td>
+              <td className="border px-4 py-2 dark:text-gray-300 dark:border-gray-600">{u.email}</td>
+              <td className="border px-4 py-2 text-center dark:text-gray-300 dark:border-gray-600">{u.is_admin ? 'Yes' : 'No'}</td>
+              <td className="border px-4 py-2 text-center dark:border-gray-600">
                 <button
                   onClick={() => toggleAdmin(u.id, u.is_admin)}
                   disabled={updatingId === u.id}
                   className={`px-3 py-1 rounded ${
                     updatingId === u.id
-                      ? 'bg-gray-400'
+                      ? 'bg-gray-400 dark:bg-gray-600'
                       : u.is_admin
-                      ? 'bg-red-500 text-white hover:bg-red-600'
-                      : 'bg-green-500 text-white hover:bg-green-600'
+                      ? 'bg-red-500 text-white hover:bg-red-600 dark:bg-red-600 dark:hover:bg-red-700'
+                      : 'bg-green-500 text-white hover:bg-green-600 dark:bg-green-600 dark:hover:bg-green-700'
                   }`}
                 >
                   {updatingId === u.id

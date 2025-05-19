@@ -36,7 +36,7 @@ const PersonalizationFlow: React.FC = () => {
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-[400px]">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-500"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-500 dark:border-primary-400"></div>
       </div>
     );
   }
@@ -44,12 +44,12 @@ const PersonalizationFlow: React.FC = () => {
   // Show error state if products can't be loaded
   if (error) {
     return (
-      <div className="bg-red-50 text-red-600 p-4 rounded-md">
+      <div className="bg-red-50 text-red-600 p-4 rounded-md dark:bg-red-800 dark:text-red-300">
         <h3 className="text-lg font-semibold">Error</h3>
         <p>{error}</p>
         <button 
           onClick={() => navigate('/products')}
-          className="mt-4 text-white bg-red-500 hover:bg-red-600 px-4 py-2 rounded-md transition-colors">
+          className="mt-4 text-white bg-red-500 hover:bg-red-600 px-4 py-2 rounded-md transition-colors dark:bg-gray-600 dark:text-white dark:hover:bg-gray-500">
           Back to Products
         </button>
       </div>
@@ -73,31 +73,25 @@ const PersonalizationFlow: React.FC = () => {
   };
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow-md">
-      <h2 className="text-2xl font-bold text-gray-900 mb-6">Personalize Your Product</h2>
+    <div className="bg-white p-6 rounded-lg shadow-md dark:bg-gray-700">
+      <h2 className="text-2xl font-bold text-gray-900 mb-6 dark:text-white">Personalize Your Product</h2>
       
       {/* Progress indicator */}
       <div className="mb-8">
-        <div className="flex justify-between">
-          <div className={`text-sm ${state.step >= 0 ? 'text-primary-600 font-semibold' : 'text-gray-500'}`}>
-            1. Select Product
-          </div>
-          <div className={`text-sm ${state.step >= 1 ? 'text-primary-600 font-semibold' : 'text-gray-500'}`}>
-            2. Choose Design
-          </div>
-          <div className={`text-sm ${state.step >= 2 ? 'text-primary-600 font-semibold' : 'text-gray-500'}`}>
-            3. Add Text
-          </div>
-          <div className={`text-sm ${state.step >= 3 ? 'text-primary-600 font-semibold' : 'text-gray-500'}`}>
-            4. Preview
-          </div>
-        </div>
-        <div className="mt-2 h-2 bg-gray-200 rounded-full">
-          <div 
-            className="h-full bg-primary-500 rounded-full transition-all duration-300"
-            style={{ width: `${(state.step / 3) * 100}%` }}
-          ></div>
-        </div>
+        <ol className="flex items-center w-full text-sm font-medium text-center text-gray-500 dark:text-gray-400 sm:text-base">
+          {["Select Product", "Choose Design", "Add Text", "Preview"].map((stepName, index) => (
+            <li key={stepName} className={`flex md:w-full items-center ${index <= state.step ? 'text-primary-600 dark:text-primary-400' : 'text-gray-500 dark:text-gray-500'} ${index < 3 ? 'sm:after:content-[""] after:w-full after:h-1 after:border-b after:border-gray-200 after:border-1 after:hidden sm:after:inline-block after:mx-6 xl:after:mx-10 dark:after:border-gray-600' : ''}`}>
+              <span className={`flex items-center after:content-['/'] sm:after:hidden after:mx-2 after:text-gray-200 dark:after:text-gray-500 ${index <= state.step ? '' : 'opacity-60'}`}>
+                {index < state.step ? (
+                  <svg className="w-4 h-4 sm:w-5 sm:h-5 mr-2" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg"><path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd"></path></svg>
+                ) : (
+                  <span className="mr-2">{index + 1}</span>
+                )}
+                {stepName}
+              </span>
+            </li>
+          ))}
+        </ol>
       </div>
       
       {/* Render current step */}

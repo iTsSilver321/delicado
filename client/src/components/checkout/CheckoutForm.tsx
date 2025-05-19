@@ -46,6 +46,66 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({ onSuccess, onCancel }) => {
   const [shippingMethod, setShippingMethod] = useState(shippingOptions[0].name);
   const [shippingCost, setShippingCost] = useState(shippingOptions[0].cost);
   
+  const cardElementOptions = {
+    style: {
+      base: {
+        color: "#32325d", // Default color
+        fontFamily: 'Arial, sans-serif',
+        fontSmoothing: "antialiased",
+        fontSize: "16px",
+        "::placeholder": {
+          color: "#aab7c4" // Default placeholder color
+        }
+      },
+      invalid: {
+        color: "#fa755a",
+        iconColor: "#fa755a"
+      }
+    },
+  };
+
+  // Dynamically adjust CardElement styles for dark mode
+  const [dynamicCardOptions, setDynamicCardOptions] = useState(cardElementOptions);
+
+  useEffect(() => {
+    const updateCardStyles = () => {
+      const isDarkMode = document.documentElement.classList.contains('dark');
+      setDynamicCardOptions(prevOptions => ({
+        ...prevOptions,
+        style: {
+          ...prevOptions.style,
+          base: {
+            ...prevOptions.style.base,
+            color: isDarkMode ? '#ffffff' : '#32325d',
+            '::placeholder': {
+              ...(prevOptions.style.base['::placeholder'] || {}),
+              color: isDarkMode ? '#8892a0' : '#aab7c4',
+            },
+          },
+        },
+      }));
+    };
+
+    // Initial style update
+    updateCardStyles();
+
+    // Observe changes to the class attribute of documentElement (for dark mode toggle)
+    const observer = new MutationObserver((mutationsList) => {
+      for (const mutation of mutationsList) {
+        if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+          updateCardStyles();
+        }
+      }
+    });
+
+    observer.observe(document.documentElement, { attributes: true });
+
+    // Cleanup observer on component unmount
+    return () => {
+      observer.disconnect();
+    };
+  }, []); // Empty dependency array means this effect runs once on mount and cleans up on unmount
+
   // Update shipping address name when user changes
   useEffect(() => {
     if (user) {
@@ -206,51 +266,33 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({ onSuccess, onCancel }) => {
     return Object.values(shippingAddress).every(value => value.trim() !== '');
   };
   
-  const cardElementOptions = {
-    style: {
-      base: {
-        color: "#32325d",
-        fontFamily: 'Arial, sans-serif',
-        fontSmoothing: "antialiased",
-        fontSize: "16px",
-        "::placeholder": {
-          color: "#aab7c4"
-        }
-      },
-      invalid: {
-        color: "#fa755a",
-        iconColor: "#fa755a"
-      }
-    },
-  };
-  
   return (
-    <div className="form-card space-y-6">
-      <h2 className="text-2xl font-bold text-gray-800 mb-6">Checkout</h2>
+    <div className="form-card space-y-6 bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
+      <h2 className="text-2xl font-bold text-gray-800 dark:text-white mb-6">Checkout</h2>
 
       {/* Payment Method Selection */}
       <div className="mb-6">
-        <h3 className="text-lg font-semibold mb-2">Payment Method</h3>
+        <h3 className="text-lg font-semibold mb-2 dark:text-white">Payment Method</h3>
         <div className="flex items-center space-x-4">
-          <label className="inline-flex items-center">
+          <label className="inline-flex items-center dark:text-gray-300">
             <input
               type="radio"
               name="paymentMethod"
               value="card"
               checked={paymentMethod === 'card'}
               onChange={() => setPaymentMethod('card')}
-              className="form-radio"
+              className="form-radio text-primary-600 dark:bg-gray-700 dark:border-gray-600 focus:ring-primary-500"
             />
             <span className="ml-2">Credit/Debit Card</span>
           </label>
-          <label className="inline-flex items-center">
+          <label className="inline-flex items-center dark:text-gray-300">
             <input
               type="radio"
               name="paymentMethod"
               value="cash"
               checked={paymentMethod === 'cash'}
               onChange={() => setPaymentMethod('cash')}
-              className="form-radio"
+              className="form-radio text-primary-600 dark:bg-gray-700 dark:border-gray-600 focus:ring-primary-500"
             />
             <span className="ml-2">Cash on Delivery</span>
           </label>
@@ -258,23 +300,23 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({ onSuccess, onCancel }) => {
       </div>
 
       {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+        <div className="bg-red-100 border border-red-400 text-red-700 dark:bg-red-700 dark:text-red-100 dark:border-red-600 px-4 py-3 rounded mb-4">
           {error}
         </div>
       )}
       
       {paymentMethod === 'card' && succeeded ? (
         <div className="text-center py-6">
-          <div className="text-green-600 mb-4">
+          <div className="text-green-600 dark:text-green-400 mb-4">
             <svg className="w-16 h-16 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>
           </div>
-          <h3 className="text-xl font-bold mb-2">Payment Successful!</h3>
-          <p className="mb-4">Your order has been placed successfully.</p>
+          <h3 className="text-xl font-bold mb-2 dark:text-white">Payment Successful!</h3>
+          <p className="mb-4 dark:text-gray-300">Your order has been placed successfully.</p>
           <button 
             onClick={() => onSuccess(orderId!)}
-            className="bg-primary-500 text-white px-6 py-2 rounded hover:bg-primary-600 transition-colors"
+            className="bg-primary-500 text-white px-6 py-2 rounded hover:bg-primary-600 dark:bg-primary-600 dark:hover:bg-primary-700 transition-colors"
           >
             View Your Order
           </button>
@@ -284,16 +326,16 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({ onSuccess, onCancel }) => {
           {/* Saved Address Selector */}
           {user?.shipping_addresses?.length > 0 && (
             <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 mb-1">Saved Addresses</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Saved Addresses</label>
               <select
                 value={selectedAddressIndex}
                 onChange={handleSavedAddressSelect}
-                className="input-field"
+                className="input-field dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500 w-full"
               >
-                <option value="">Choose address...</option>
-                <option value="-1">Use New Address</option>
+                <option value="" className="dark:bg-gray-700">Choose address...</option>
+                <option value="-1" className="dark:bg-gray-700">Use New Address</option>
                 {user?.shipping_addresses?.map((addr: any, idx: number) => (
-                  <option key={idx} value={String(idx)}>
+                  <option key={idx} value={String(idx)} className="dark:bg-gray-700">
                     {addr.fullName}, {addr.street}, {addr.city}
                   </option>
                 ))}
@@ -301,11 +343,11 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({ onSuccess, onCancel }) => {
             </div>
           )}
           <div>
-            <h3 className="text-lg font-semibold mb-4">Shipping Information</h3>
+            <h3 className="text-lg font-semibold mb-4 dark:text-white">Shipping Information</h3>
             <div className="grid grid-cols-1 gap-4">
               {/* Shipping fields below use shippingAddress state populated above */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Full Name
                 </label>
                 <input
@@ -313,14 +355,14 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({ onSuccess, onCancel }) => {
                   name="fullName"
                   value={shippingAddress.fullName}
                   onChange={handleInputChange}
-                  className="input-field"
+                  className="input-field dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400 dark:focus:ring-primary-500 dark:focus:border-primary-500 w-full"
                   required
                   disabled={selectedAddressIndex !== '' && selectedAddressIndex !== '-1'}
                 />
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Street Address
                 </label>
                 <input
@@ -328,7 +370,7 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({ onSuccess, onCancel }) => {
                   name="street"
                   value={shippingAddress.street}
                   onChange={handleInputChange}
-                  className="input-field"
+                  className="input-field dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400 dark:focus:ring-primary-500 dark:focus:border-primary-500 w-full"
                   required
                   disabled={selectedAddressIndex !== '' && selectedAddressIndex !== '-1'}
                 />
@@ -336,7 +378,7 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({ onSuccess, onCancel }) => {
               
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     City
                   </label>
                   <input
@@ -344,14 +386,14 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({ onSuccess, onCancel }) => {
                     name="city"
                     value={shippingAddress.city}
                     onChange={handleInputChange}
-                    className="input-field"
+                    className="input-field dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400 dark:focus:ring-primary-500 dark:focus:border-primary-500 w-full"
                     required
                     disabled={selectedAddressIndex !== '' && selectedAddressIndex !== '-1'}
                   />
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     State/Province
                   </label>
                   <input
@@ -359,7 +401,7 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({ onSuccess, onCancel }) => {
                     name="state"
                     value={shippingAddress.state}
                     onChange={handleInputChange}
-                    className="input-field"
+                    className="input-field dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400 dark:focus:ring-primary-500 dark:focus:border-primary-500 w-full"
                     required
                     disabled={selectedAddressIndex !== '' && selectedAddressIndex !== '-1'}
                   />
@@ -368,7 +410,7 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({ onSuccess, onCancel }) => {
               
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     Postal Code
                   </label>
                   <input
@@ -376,14 +418,14 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({ onSuccess, onCancel }) => {
                     name="postalCode"
                     value={shippingAddress.postalCode}
                     onChange={handleInputChange}
-                    className="input-field"
+                    className="input-field dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400 dark:focus:ring-primary-500 dark:focus:border-primary-500 w-full"
                     required
                     disabled={selectedAddressIndex !== '' && selectedAddressIndex !== '-1'}
                   />
                 </div>
                 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                     Country
                   </label>
                   <input
@@ -391,7 +433,7 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({ onSuccess, onCancel }) => {
                     name="country"
                     value={shippingAddress.country}
                     onChange={handleInputChange}
-                    className="input-field"
+                    className="input-field dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400 dark:focus:ring-primary-500 dark:focus:border-primary-500 w-full"
                     required
                     disabled={selectedAddressIndex !== '' && selectedAddressIndex !== '-1'}
                   />
@@ -402,31 +444,31 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({ onSuccess, onCancel }) => {
           
           {paymentMethod === 'card' && (
             <div>
-              <h3 className="text-lg font-semibold mb-4">Payment Details</h3>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <h3 className="text-lg font-semibold mb-4 dark:text-white">Payment Details</h3>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Card Information
               </label>
-              <div className="border border-gray-300 p-3 rounded mb-4">
-                <CardElement options={cardElementOptions} onChange={handleChange} />
+              <div className="border border-gray-300 dark:border-gray-600 p-3 rounded mb-4">
+                <CardElement options={dynamicCardOptions} onChange={handleChange} />
               </div>
-              <div className="text-sm text-gray-500 mb-4">
+              <div className="text-sm text-gray-500 dark:text-gray-400 mb-4">
                 Test card: 4242 4242 4242 4242 | Exp: Any future date | CVC: Any 3 digits
               </div>
             </div>
           )}
           
-          <div className="pt-4 border-t border-gray-200 space-y-4">
+          <div className="pt-4 border-t border-gray-200 dark:border-gray-700 space-y-4">
             <div className="flex justify-between items-center mb-4">
-              <span className="text-lg font-semibold">Subtotal:</span>
-              <span>€{cartState.total.toFixed(2)}</span>
+              <span className="text-lg font-semibold dark:text-white">Subtotal:</span>
+              <span className="dark:text-gray-300">€{cartState.total.toFixed(2)}</span>
             </div>
             <div className="flex justify-between items-center mb-4">
-              <span className="text-lg font-semibold">Shipping:</span>
-              <span>€{shippingCost.toFixed(2)}</span>
+              <span className="text-lg font-semibold dark:text-white">Shipping:</span>
+              <span className="dark:text-gray-300">€{shippingCost.toFixed(2)}</span>
             </div>
             <div className="flex justify-between items-center mb-4">
-              <span className="text-lg font-semibold">Total:</span>
-              <span className="text-2xl font-bold text-primary-600">
+              <span className="text-lg font-semibold dark:text-white">Total:</span>
+              <span className="text-2xl font-bold text-primary-600 dark:text-primary-400">
                 €{(cartState.total + shippingCost).toFixed(2)}
               </span>
             </div>
@@ -435,7 +477,7 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({ onSuccess, onCancel }) => {
               <button
                 type="button"
                 onClick={onCancel}
-                className="btn-secondary"
+                className="btn-secondary dark:bg-gray-600 dark:text-white dark:hover:bg-gray-500 dark:border-gray-600"
               >
                 Cancel
               </button>
@@ -443,7 +485,7 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({ onSuccess, onCancel }) => {
               <button
                 type="submit"
                 disabled={processing || succeeded || (paymentMethod === 'card' && disabled)}
-                className={`btn-primary w-2/3 ${
+                className={`btn-primary w-2/3 dark:bg-primary-600 dark:hover:bg-primary-700 dark:disabled:bg-primary-800 ${
                   (processing || (paymentMethod === 'card' && disabled)) ? 'opacity-50 cursor-not-allowed' : ''
                 }`}
               >

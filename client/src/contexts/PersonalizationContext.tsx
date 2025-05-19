@@ -4,7 +4,7 @@ import { Product, DesignTemplate, PersonalizationConfig, TextOption } from '../t
 interface PersonalizationState {
   product: Product | null;
   availableTemplates: DesignTemplate[];
-  selectedTemplate: DesignTemplate | null;
+  selectedTemplate: DesignTemplate | null | undefined; // Allow undefined for clearing
   customText: string;
   textOptions: TextOption;
   step: number; // Track the current step in the personalization flow
@@ -15,7 +15,7 @@ interface PersonalizationState {
 type PersonalizationAction =
   | { type: 'SET_PRODUCT'; payload: Product }
   | { type: 'SET_AVAILABLE_TEMPLATES'; payload: DesignTemplate[] }
-  | { type: 'SELECT_TEMPLATE'; payload: DesignTemplate }
+  | { type: 'SELECT_TEMPLATE'; payload: DesignTemplate | null | undefined } // Allow undefined
   | { type: 'SET_CUSTOM_TEXT'; payload: string }
   | { type: 'SET_TEXT_OPTIONS'; payload: Partial<TextOption> }
   | { type: 'NEXT_STEP' }
@@ -29,7 +29,7 @@ interface PersonalizationContextType {
   state: PersonalizationState;
   setProduct: (product: Product) => void;
   setAvailableTemplates: (templates: DesignTemplate[]) => void;
-  selectTemplate: (template: DesignTemplate) => void;
+  selectTemplate: (template: DesignTemplate | null | undefined) => void; // Allow undefined
   setCustomText: (text: string) => void;
   setTextOptions: (options: Partial<TextOption>) => void;
   nextStep: () => void;
@@ -191,7 +191,7 @@ export const PersonalizationProvider: React.FC<{ children: ReactNode }> = ({ chi
     dispatch({ type: 'SET_AVAILABLE_TEMPLATES', payload: templates });
   };
 
-  const selectTemplate = (template: DesignTemplate) => {
+  const selectTemplate = (template: DesignTemplate | null | undefined) => { // Allow undefined
     dispatch({ type: 'SELECT_TEMPLATE', payload: template });
   };
 

@@ -11,7 +11,7 @@ const PreviewStep: React.FC = () => {
   
   if (!state.product) {
     return (
-      <div className="text-center text-red-500 p-4 bg-red-100 rounded-md">
+      <div className="text-center text-red-500 p-4 bg-red-100 rounded-md dark:bg-red-800 dark:text-red-300">
         Please select a product first.
       </div>
     );
@@ -47,20 +47,20 @@ const PreviewStep: React.FC = () => {
   };
 
   return (
-    <div>
-      <h3 className="text-xl font-semibold mb-6">Preview Your Personalized Item</h3>
+    <div className="dark:text-gray-300">
+      <h3 className="text-xl font-semibold mb-6 dark:text-white">Preview Your Personalized Item</h3>
 
-      <div className="bg-white border rounded-lg shadow-md overflow-hidden">
+      <div className="bg-white border rounded-lg shadow-md overflow-hidden dark:bg-gray-700 dark:border-gray-600">
         <div className="p-6">
           <div className="flex flex-col md:flex-row md:gap-8">
             {/* Product image and text preview */}
             <div className="md:w-1/2 mb-6 md:mb-0 relative">
-              <div className="aspect-square rounded-lg overflow-hidden bg-gray-100 relative">
+              <div className="aspect-square rounded-lg overflow-hidden bg-gray-100 relative dark:bg-gray-600">
                 {/* Base product image with error handling */}
                 <img 
                   src={state.product.image_url} 
                   alt={state.product.name} 
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover rounded-md border dark:border-gray-600"
                   onError={(e) => handleImageError(e, 'product')}
                 />
                 
@@ -89,57 +89,57 @@ const PreviewStep: React.FC = () => {
                 )}
               </div>
               
-              <div className="text-xs text-gray-500 mt-2 text-center">
+              <div className="text-xs text-gray-500 mt-2 text-center dark:text-gray-400">
                 This is a digital representation. The final product may appear slightly different.
               </div>
             </div>
 
             {/* Product and personalization details */}
             <div className="md:w-1/2">
-              <h2 className="text-xl font-bold text-gray-900 mb-2">
+              <h2 className="text-xl font-bold text-gray-900 mb-2 dark:text-white">
                 {state.product.name}
               </h2>
               
-              <div className="text-lg font-semibold text-primary-600 mb-4">
+              <div className="text-lg font-semibold text-primary-600 mb-4 dark:text-primary-400">
                 ${Number(state.product.price).toFixed(2)}
               </div>
               
               <div className="space-y-4 mb-6">
-                <h3 className="font-semibold text-gray-900">Personalization Details</h3>
+                <h3 className="font-semibold text-gray-900 dark:text-white">Personalization Details</h3>
                 
-                <div className="border-t pt-2">
-                  <h4 className="text-sm font-medium text-gray-700">Product:</h4>
-                  <p className="text-gray-900">{state.product.name}</p>
+                <div className="border-t pt-2 dark:border-gray-600">
+                  <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300">Product:</h4>
+                  <p className="text-gray-900 dark:text-gray-300">{state.product.name}</p>
                 </div>
                 
                 {state.selectedTemplate && (
-                  <div className="border-t pt-2">
-                    <h4 className="text-sm font-medium text-gray-700">Design Template:</h4>
-                    <p className="text-gray-900">{state.selectedTemplate.name}</p>
+                  <div className="border-t pt-2 dark:border-gray-600">
+                    <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300">Design Template:</h4>
+                    <p className="text-gray-900 dark:text-gray-300">{state.selectedTemplate.name}</p>
                   </div>
                 )}
                 
                 {state.customText && (
-                  <div className="border-t pt-2">
-                    <h4 className="text-sm font-medium text-gray-700">Custom Text:</h4>
+                  <div className="border-t pt-2 dark:border-gray-600">
+                    <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300">Custom Text:</h4>
                     <div className="flex items-center gap-2">
                       <div 
                         className="w-4 h-4 rounded-full" 
                         style={{ backgroundColor: state.textOptions.color }}
                       ></div>
-                      <p className="text-gray-900 font-medium" style={{ fontFamily: textPreviewStyle.fontFamily }}>
+                      <p className="text-gray-900 font-medium dark:text-gray-300" style={{ fontFamily: textPreviewStyle.fontFamily }}>
                         {state.customText}
                       </p>
                     </div>
-                    <p className="text-xs text-gray-500 mt-1">
+                    <p className="text-xs text-gray-500 mt-1 dark:text-gray-400">
                       Font: {state.textOptions.font}, Size: {state.textOptions.size}px
                     </p>
                   </div>
                 )}
 
-                <div className="border-t pt-2">
-                  <h4 className="text-sm font-medium text-gray-700">Product Specifications:</h4>
-                  <ul className="text-sm text-gray-600 mt-2 space-y-1">
+                <div className="border-t pt-2 dark:border-gray-600">
+                  <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300">Product Specifications:</h4>
+                  <ul className="text-sm text-gray-600 mt-2 space-y-1 dark:text-gray-400">
                     {state.product.material && (
                       <li>Material: {state.product.material}</li>
                     )}
@@ -156,18 +156,18 @@ const PreviewStep: React.FC = () => {
           </div>
         </div>
 
-        <div className="bg-gray-50 p-6 border-t">
+        <div className="bg-gray-50 p-6 border-t dark:bg-gray-800 dark:border-gray-600">
           <div className="flex justify-between items-center">
             <button 
               onClick={previousStep}
-              className="px-6 py-2 border border-gray-300 rounded-md hover:bg-gray-100 transition-colors"
+              className="px-6 py-2 border border-gray-300 rounded-md hover:bg-gray-100 transition-colors dark:bg-gray-600 dark:text-white dark:hover:bg-gray-500"
             >
               Back
             </button>
             
             <button 
               onClick={handleAddToCart}
-              className="btn-cart flex items-center gap-2"
+              className="btn-cart flex items-center gap-2 dark:bg-gray-600 dark:text-white dark:hover:bg-gray-500"
               disabled={state.product.stock <= 0}
             >
               {state.product.stock > 0 ? (

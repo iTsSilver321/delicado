@@ -71,61 +71,61 @@ const DesignForm: React.FC = () => {
     }
   };
 
-  if (loading) return <p>Loading template...</p>;
-  if (error) return <p className="text-red-600">{error}</p>;
+  if (loading) return <p className="dark:text-accent-200">Loading template...</p>;
+  if (error) return <p className="text-red-600 dark:text-red-400">{error}</p>;
 
   return (
-    <form onSubmit={handleSubmit} className="max-w-lg mx-auto p-4">
-      <h2 className="text-2xl font-semibold mb-4">{editing ? 'Edit Design Template' : 'Add Design Template'}</h2>
+    <form onSubmit={handleSubmit} className="max-w-lg mx-auto p-4 bg-white dark:bg-accent-800 shadow-md rounded-lg">
+      <h2 className="text-2xl font-semibold mb-4 text-gray-800 dark:text-white">{editing ? 'Edit Design Template' : 'Add Design Template'}</h2>
       <div className="space-y-4">
         <div>
-          <label className="block mb-1">Name</label>
+          <label className="block mb-1 text-gray-700 dark:text-accent-300">Name</label>
           <input
             name="name"
             value={form.name || ''}
             onChange={handleChange}
-            className="w-full border p-2 rounded"
+            className="w-full border p-2 rounded dark:bg-accent-700 dark:border-accent-600 dark:text-accent-200 focus:ring-primary-500 focus:border-primary-500"
             required
           />
         </div>
         <div>
-          <label className="block mb-1">Category</label>
+          <label className="block mb-1 text-gray-700 dark:text-accent-300">Category</label>
           <input
             name="category"
             value={form.category || ''}
             onChange={handleChange}
-            className="w-full border p-2 rounded"
+            className="w-full border p-2 rounded dark:bg-accent-700 dark:border-accent-600 dark:text-accent-200 focus:ring-primary-500 focus:border-primary-500"
             required
           />
         </div>
         <div>
-          <label className="block mb-1">Image</label>
-          <input type="file" accept="image/*" onChange={handleFile} className="block mb-2" />
+          <label className="block mb-1 text-gray-700 dark:text-accent-300">Image</label>
+          <input type="file" accept="image/*" onChange={handleFile} className="block mb-2 text-gray-700 dark:text-accent-300 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary-50 file:text-primary-700 hover:file:bg-primary-100 dark:file:bg-accent-700 dark:file:text-accent-200 dark:hover:file:bg-accent-600" />
           {form.image_url && (
-            <img src={form.image_url} alt="Preview" className="h-32 object-cover" />
+            <img src={form.image_url} alt="Preview" className="h-32 object-cover rounded border dark:border-accent-600" />
           )}
         </div>
         <div>
-          <label className="block mb-1">Applicable Products</label>
+          <label className="block mb-1 text-gray-700 dark:text-accent-300">Applicable Products</label>
           <select
             name="applicable_products"
             multiple
             value={(form.applicable_products ?? []).map(String)}
             onChange={handleChange}
-            className="w-full border p-2 rounded h-40"
+            className="w-full border p-2 rounded h-40 dark:bg-accent-700 dark:border-accent-600 dark:text-accent-200 focus:ring-primary-500 focus:border-primary-500"
           >
             {products.map(p => (
-              <option key={p.id} value={p.id}>
+              <option key={p.id} value={p.id} className="dark:bg-accent-700 dark:text-accent-200">
                 {p.name}
               </option>
             ))}
           </select>
         </div>
         <div className="flex space-x-2">
-          <button type="submit" className="px-4 py-2 bg-blue-500 text-white rounded">
+          <button type="submit" className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-opacity-50">
             Save
           </button>
-          <button type="button" onClick={() => navigate('/admin/designs')} className="px-4 py-2 bg-gray-300 rounded">
+          <button type="button" onClick={() => navigate('/admin/designs')} className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400 dark:bg-accent-600 dark:hover:bg-accent-500 dark:text-accent-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-50">
             Cancel
           </button>
         </div>

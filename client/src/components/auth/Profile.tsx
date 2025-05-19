@@ -141,8 +141,8 @@ const Profile: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 to-secondary-50 p-4">
-      <div className="form-card max-w-md w-full space-y-6 dark:text-gray-200">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary-50 to-secondary-50 p-4 dark:from-gray-800 dark:to-gray-900">
+      <div className="form-card max-w-md w-full space-y-6 bg-white dark:bg-gray-700 p-6 rounded-lg shadow-xl">
         <h2 className="text-2xl font-semibold text-center text-gray-800 mb-6 dark:text-gray-100">My Profile</h2>
 
         {message.text && (
@@ -248,12 +248,12 @@ const Profile: React.FC = () => {
 
         {/* Change Password Section */}
         <div className="mt-8">
-          <button onClick={() => setShowChangePw(!showChangePw)} className="text-blue-500 hover:underline mb-2">
+          <button onClick={() => setShowChangePw(!showChangePw)} className="text-blue-500 hover:underline mb-2 dark:text-pink-400 dark:hover:text-pink-300">
             {showChangePw ? 'Hide Change Password' : 'Change Password'}
           </button>
           {showChangePw && (
-            <form onSubmit={handlePwSubmit} className="space-y-4 p-4 bg-gray-50 rounded">
-              {pwMessage.text && <p className={pwMessage.type === 'success' ? 'text-green-600' : 'text-red-600'}>{pwMessage.text}</p>}
+            <form onSubmit={handlePwSubmit} className="space-y-4 p-4 bg-gray-50 rounded dark:bg-gray-600">
+              {pwMessage.text && <p className={`${pwMessage.type === 'success' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'} text-sm`}>{pwMessage.text}</p>}
               <input
                 name="oldPassword"
                 type="password"
@@ -281,7 +281,7 @@ const Profile: React.FC = () => {
                 className="input-field"
                 required
               />
-              <button type="submit" disabled={pwSubmitting} className="btn-primary">
+              <button type="submit" disabled={pwSubmitting} className="btn-primary w-full">
                 {pwSubmitting ? 'Saving...' : 'Save Password'}
               </button>
             </form>
@@ -290,17 +290,17 @@ const Profile: React.FC = () => {
 
         {/* Manage Addresses Section */}
         <div className="mt-8">
-          <button onClick={() => setShowAddresses(!showAddresses)} className="text-blue-500 hover:underline mb-2">
+          <button onClick={() => setShowAddresses(!showAddresses)} className="text-blue-500 hover:underline mb-2 dark:text-pink-400 dark:hover:text-pink-300">
             {showAddresses ? 'Hide Addresses' : 'Manage Saved Addresses'}
           </button>
           {showAddresses && (
-            <div className="space-y-4 p-4 bg-gray-50 rounded">
-              {addrMessage.text && <p className={addrMessage.type === 'success' ? 'text-green-600' : 'text-red-600'}>{addrMessage.text}</p>}
+            <div className="space-y-4 p-4 bg-gray-50 rounded dark:bg-gray-600">
+              {addrMessage.text && <p className={`${addrMessage.type === 'success' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'} text-sm`}>{addrMessage.text}</p>}
               {addresses.map((addr, idx) => (
-                <div key={idx} className="border rounded p-2 space-y-2">
-                  <div className="flex justify-between">
-                    <span className="font-medium">Address #{idx + 1}</span>
-                    <button type="button" onClick={() => removeAddress(idx)} className="text-red-500">
+                <div key={idx} className="border rounded p-3 space-y-2 dark:border-gray-500">
+                  <div className="flex justify-between items-center">
+                    <span className="font-medium dark:text-gray-100">Address #{idx + 1}</span>
+                    <button type="button" onClick={() => removeAddress(idx)} className="text-red-500 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 text-sm">
                       Remove
                     </button>
                   </div>
@@ -316,11 +316,11 @@ const Profile: React.FC = () => {
                   ))}
                 </div>
               ))}
-              <button type="button" onClick={addAddress} className="btn-secondary">
+              <button type="button" onClick={addAddress} className="btn-secondary w-full">
                 Add Address
               </button>
-              <div className="mt-2">
-                <button onClick={handleAddrSubmit} disabled={addrSubmitting} className="btn-primary">
+              <div className="mt-4">
+                <button onClick={handleAddrSubmit} disabled={addrSubmitting} className="btn-primary w-full">
                   {addrSubmitting ? 'Saving...' : 'Save Addresses'}
                 </button>
               </div>

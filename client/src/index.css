@@ -7,7 +7,7 @@
 @layer base {
   html {
     font-family: 'Poppins', system-ui, sans-serif;
-    @apply antialiased text-gray-800 bg-gradient-to-br from-primary-50 via-accent-50 to-secondary-50;
+    @apply antialiased text-gray-800 bg-gradient-to-br from-primary-50 via-accent-50 to-secondary-50 dark:bg-accent-900 dark:text-accent-200;
   }
   body {
       min-height: 100vh;
@@ -44,11 +44,11 @@
   }
 
   .nav-brand {
-    @apply text-2xl font-bold text-pink-600 hover:text-pink-700 transition-colors duration-300 ease-in-out;
+    @apply text-2xl font-bold text-pink-600 hover:text-pink-700 dark:text-pink-400 dark:hover:text-pink-500 transition-colors duration-300 ease-in-out;
   }
 
   .profile-btn {
-    @apply flex items-center gap-2 py-1 px-3 rounded-full bg-pink-100 text-pink-600 hover:bg-pink-200 transition-colors duration-300 ease-in-out hover:shadow-md;
+    @apply flex items-center gap-2 py-1 px-3 rounded-full bg-pink-100 text-pink-600 hover:bg-pink-200 dark:bg-accent-700 dark:text-accent-200 dark:hover:bg-accent-600 transition-colors duration-300 ease-in-out hover:shadow-md;
   }
 
   .form-card {
@@ -56,7 +56,7 @@
   }
 
   .input-field {
-    @apply w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 bg-white bg-opacity-70 dark:bg-gray-700 dark:bg-opacity-70 focus:outline-none focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400 transition-all duration-300 ease-in-out;
+    @apply w-full border border-gray-300 dark:border-gray-600 rounded-lg px-4 py-2 bg-white bg-opacity-70 dark:bg-gray-700 dark:bg-opacity-70 focus:outline-none focus:ring-2 focus:ring-primary-500 dark:focus:ring-primary-400 transition-all duration-300 ease-in-out dark:text-white;
   }
 
   .content-panel {
