@@ -485,7 +485,7 @@ const CheckoutForm: React.FC<CheckoutFormProps> = ({ onSuccess, onCancel }) => {
               <button
                 type="submit"
                 disabled={processing || succeeded || (paymentMethod === 'card' && disabled)}
-                className={`btn-primary w-2/3 dark:bg-primary-600 dark:hover:bg-primary-700 dark:disabled:bg-primary-800 ${
+                className={`btn-primary w-2/3 bg-green-500 hover:bg-green-600 dark:bg-green-600 dark:hover:bg-green-700 dark:disabled:bg-green-800 ${
                   (processing || (paymentMethod === 'card' && disabled)) ? 'opacity-50 cursor-not-allowed' : ''
                 }`}
               >
