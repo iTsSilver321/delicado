@@ -11,6 +11,7 @@ import designTemplateRoutes from './routes/designTemplateRoutes';
 import personalizationRoutes from './routes/personalizationRoutes';
 import paymentRoutes from './routes/paymentRoutes';
 import contentRoutes from './routes/contentRoutes';
+import reportRoutes from './routes/reportRoutes';
 
 const app = express();
 const port = process.env.PORT || 5000;
@@ -85,6 +86,8 @@ app.use('/api/personalizations', personalizationRoutes);
 app.use('/api/payments', paymentRoutes);
 // Mount content pages routes
 app.use('/api/content-pages', contentRoutes);
+// Mount report routes
+app.use('/api/reports', reportRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {

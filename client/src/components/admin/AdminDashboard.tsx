@@ -13,6 +13,7 @@ const AdminDashboard: React.FC = () => {
         <NavLink to="/admin/orders" className={linkClass}>Orders</NavLink>
         <NavLink to="/admin/users" className={linkClass}>Users</NavLink>
         <NavLink to="/admin/content" className={linkClass}>Content Pages</NavLink>
+        <NavLink to="/admin/reports" className={linkClass}>Reports</NavLink>
       </nav>
       <div className="mt-6">
         <Outlet />

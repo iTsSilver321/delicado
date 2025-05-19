@@ -25,6 +25,7 @@ import DesignForm from './components/admin/DesignForm';
 import OrdersAdmin from './components/admin/OrdersAdmin';
 import UsersAdmin from './components/admin/UsersAdmin';
 import ContentAdmin from './components/admin/ContentAdmin';
+import ReportsAdmin from './components/admin/ReportsAdmin';
 
 // Component to display all products on the /products page
 const AllProductsSection: React.FC = () => {
@@ -168,6 +169,7 @@ const App: React.FC = () => {
                     <Route path="orders" element={<OrdersAdmin />} />
                     <Route path="users" element={<UsersAdmin />} />
                     <Route path="content" element={<ContentAdmin />} />
+                    <Route path="reports" element={<ReportsAdmin />} />
                   </Route>
                 </Routes>
               </MainLayout>
